@@ -2,13 +2,12 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2 } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2 } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 
-// Rich text editor toolbar + editor
 function RichEditor({
   content,
   onChange,
@@ -42,7 +41,6 @@ function RichEditor({
 
   return (
     <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-      {/* Toolbar */}
       <div className="flex gap-1 p-2 bg-muted/40" style={{ borderBottom: "1px solid var(--border)" }}>
         <button
           type="button"
@@ -100,17 +98,18 @@ export default function Manage() {
   const [activePageKey, setActivePageKey] = useState<PageKey>("about");
   const [articleCategory, setArticleCategory] = useState<Category>("a-whim");
   const [isCreating, setIsCreating] = useState(false);
+  const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
   const today = new Date().toISOString().split("T")[0];
   const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "", publishedAt: today });
   const [articleRichContent, setArticleRichContent] = useState("");
   const [editingContent, setEditingContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [savingPage, setSavingPage] = useState(false);
-
   // Articles
   const { data: articles = [], isLoading: articlesLoading, refetch: refetchArticles } =
     trpc.articles.list.useQuery({ category: articleCategory });
   const createArticleMutation = trpc.articles.create.useMutation();
+  const updateArticleMutation = trpc.articles.update.useMutation();
   const deleteArticleMutation = trpc.articles.delete.useMutation();
 
   // Pages
@@ -119,18 +118,16 @@ export default function Manage() {
   const updatePageMutation = trpc.pages.updateContent.useMutation();
 
   // Images
+  const [imagesPageKey, setImagesPageKey] = useState<string>("home");
   const { data: images = [], isLoading: imagesLoading, refetch: refetchImages } =
-    trpc.images.list.useQuery();
+    trpc.images.list.useQuery({ pageKey: imagesPageKey });
   const deleteImageMutation = trpc.images.delete.useMutation();
 
-  // Sync page content into editor when loaded
   useEffect(() => {
     if (pageContent?.content !== undefined) {
       setEditingContent(pageContent.content);
     }
   }, [pageContent?.content, activePageKey]);
-
-  // Manage page is directly accessible — no login required
 
   const handleCreateArticle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,19 +135,41 @@ export default function Manage() {
     const content = articleRichContent || articleForm.content;
     if (!content) return;
     try {
-      await createArticleMutation.mutateAsync({
-        ...articleForm,
-        content,
-        category: articleCategory,
-        publishedAt: articleForm.publishedAt,
-      });
-      setArticleForm({ slug: "", title: "", content: "", publishedAt: new Date().toISOString().split("T")[0] });
+      if (editingArticleId) {
+        await updateArticleMutation.mutateAsync({
+          id: editingArticleId,
+          ...articleForm,
+          content,
+          publishedAt: articleForm.publishedAt,
+        });
+        setEditingArticleId(null);
+      } else {
+        await createArticleMutation.mutateAsync({
+          ...articleForm,
+          content,
+          category: articleCategory,
+          publishedAt: articleForm.publishedAt,
+        });
+      }
+      setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
       setArticleRichContent("");
       setIsCreating(false);
       refetchArticles();
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleEditArticle = (article: any) => {
+    setArticleForm({
+      slug: article.slug,
+      title: article.title,
+      content: article.content,
+      publishedAt: new Date(article.publishedAt).toISOString().split("T")[0],
+    });
+    setArticleRichContent(article.content);
+    setEditingArticleId(article.id);
+    setIsCreating(true);
   };
 
   const handleDeleteArticle = async (id: number) => {
@@ -182,6 +201,7 @@ export default function Manage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("pageKey", imagesPageKey);
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       if (res.ok) refetchImages();
     } catch (err) {
@@ -227,7 +247,6 @@ export default function Manage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Manage Header */}
       <div className="px-12 pt-10 pb-6 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <a href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-sm">
@@ -244,15 +263,13 @@ export default function Manage() {
       </div>
 
       <div className="px-12 pb-16">
-
-        {/* ─── PAGES SECTION ─── */}
+        {/* PAGES */}
         {section === "pages" && (
           <div>
             <div className="flex gap-6 mb-8">
               {subBtn<PageKey>("about", activePageKey, "about", setActivePageKey)}
               {subBtn<PageKey>("contact", activePageKey, "contact", setActivePageKey)}
             </div>
-
             {pageLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
@@ -277,7 +294,7 @@ export default function Manage() {
           </div>
         )}
 
-        {/* ─── ARTICLES SECTION ─── */}
+        {/* ARTICLES */}
         {section === "articles" && (
           <div>
             <div className="flex gap-6 mb-8">
@@ -287,14 +304,21 @@ export default function Manage() {
 
             {!isCreating ? (
               <button
-                onClick={() => setIsCreating(true)}
+                onClick={() => {
+                  setIsCreating(true);
+                  setEditingArticleId(null);
+                  setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
+                  setArticleRichContent("");
+                }}
                 className="text-xs text-muted-foreground hover:text-foreground transition tracking-wide mb-8 block"
               >
                 + new article
               </button>
             ) : (
               <form onSubmit={handleCreateArticle} className="max-w-2xl space-y-4 mb-10">
-                <p className="text-xs text-muted-foreground tracking-wide">new article in {articleCategory}</p>
+                <p className="text-xs text-muted-foreground tracking-wide">
+                  {editingArticleId ? "edit article" : `new article in ${articleCategory}`}
+                </p>
                 <Input
                   placeholder="slug (e.g., my-first-post)"
                   value={articleForm.slug}
@@ -325,8 +349,14 @@ export default function Manage() {
                   placeholder="write your article..."
                 />
                 <div className="flex gap-3">
-                  <Button type="submit" disabled={createArticleMutation.isPending} size="sm" className="text-xs">
-                    {createArticleMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "publish"}
+                  <Button type="submit" disabled={createArticleMutation.isPending || updateArticleMutation.isPending} size="sm" className="text-xs">
+                    {createArticleMutation.isPending || updateArticleMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : editingArticleId ? (
+                      "update"
+                    ) : (
+                      "publish"
+                    )}
                   </Button>
                   <Button
                     type="button"
@@ -335,7 +365,8 @@ export default function Manage() {
                     className="text-xs"
                     onClick={() => {
                       setIsCreating(false);
-                      setArticleForm({ slug: "", title: "", content: "", publishedAt: new Date().toISOString().split("T")[0] });
+                      setEditingArticleId(null);
+                      setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
                       setArticleRichContent("");
                     }}
                   >
@@ -351,25 +382,35 @@ export default function Manage() {
               <p className="text-sm text-muted-foreground tracking-wide">no articles yet.</p>
             ) : (
               <div className="max-w-2xl space-y-4">
-                {articles.map((article) => (
+                {articles.map((article: any) => (
                   <div key={article.id} className="flex items-start justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
                     <div>
                       <p className="text-sm font-semibold">{article.title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
                         /{articleCategory}/{article.slug} ·{" "}
-                        {new Date(article.createdAt).toLocaleDateString("en-US", {
+                        {new Date(article.publishedAt).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
                         })}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteArticle(article.id)}
-                      className="text-muted-foreground hover:text-destructive transition ml-4 mt-0.5"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2 ml-4 mt-0.5">
+                      <button
+                        onClick={() => handleEditArticle(article)}
+                        className="text-muted-foreground hover:text-foreground transition"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteArticle(article.id)}
+                        className="text-muted-foreground hover:text-destructive transition"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -377,9 +418,17 @@ export default function Manage() {
           </div>
         )}
 
-        {/* ─── IMAGES SECTION ─── */}
+        {/* IMAGES */}
         {section === "images" && (
           <div>
+            <div className="flex gap-6 mb-8">
+              {subBtn<string>("home", imagesPageKey, "home", setImagesPageKey)}
+              {subBtn<string>("about", imagesPageKey, "about", setImagesPageKey)}
+              {subBtn<string>("a-whim", imagesPageKey, "a whim", setImagesPageKey)}
+              {subBtn<string>("imagination", imagesPageKey, "imagination", setImagesPageKey)}
+              {subBtn<string>("contact", imagesPageKey, "contact", setImagesPageKey)}
+            </div>
+
             <label className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition tracking-wide cursor-pointer mb-8">
               <input
                 type="file"
@@ -399,10 +448,10 @@ export default function Manage() {
             {imagesLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : images.length === 0 ? (
-              <p className="text-sm text-muted-foreground tracking-wide">no images yet.</p>
+              <p className="text-sm text-muted-foreground tracking-wide">no images for {imagesPageKey} yet.</p>
             ) : (
               <div className="grid grid-cols-4 gap-4 max-w-3xl">
-                {images.map((image: { id: number; url: string }) => (
+                {images.map((image: any) => (
                   <div key={image.id} className="relative group">
                     <img
                       src={image.url}

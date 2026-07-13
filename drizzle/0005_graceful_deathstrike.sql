@@ -1,0 +1,1 @@
+ALTER TABLE `images` ADD `pageKey` varchar(64) DEFAULT 'home' NOT NULL;

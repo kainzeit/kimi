@@ -44,21 +44,22 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
   };
 
   return (
-    <div className="w-44 shrink-0 p-8 pt-10 flex flex-col justify-between h-screen sticky top-0">
+    <div className="w-44 shrink-0 p-8 pt-10 flex flex-col justify-between h-screen sticky top-0" style={{ marginLeft: "30px", marginTop: "10px" }}>
       <div>
         <Link href="/">
-          <h1 className="text-2xl font-bold mb-10 cursor-pointer hover:opacity-70 transition">kimi.</h1>
+          <h1 className="font-bold mb-10 cursor-pointer hover:opacity-70 transition" style={{ fontSize: "28px" }}>kimi.</h1>
         </Link>
         <nav className="flex flex-col gap-3">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`nav-link text-sm tracking-wide transition-colors ${
+              className={`nav-link tracking-wide transition-colors ${
                 isActive(item.href)
                   ? "text-foreground font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
+              style={{ fontSize: "14px" }}
             >
               {item.label}
             </Link>
@@ -96,7 +97,7 @@ function MainLayout({ children, theme, toggleTheme }: {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar theme={theme} toggleTheme={toggleTheme} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto" style={{ paddingRight: "40px", paddingTop: "20px" }}>
         {children}
       </main>
     </div>

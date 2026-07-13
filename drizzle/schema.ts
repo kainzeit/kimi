@@ -67,6 +67,7 @@ export const images = mysqlTable("images", {
   id: int("id").autoincrement().primaryKey(),
   url: varchar("url", { length: 512 }).notNull(),
   fileKey: varchar("fileKey", { length: 255 }).notNull().unique(),
+  pageKey: varchar("pageKey", { length: 64 }).default("home").notNull(), // which page this image belongs to
   uploadedBy: int("uploadedBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

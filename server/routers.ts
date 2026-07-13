@@ -51,10 +51,14 @@ export const appRouter = router({
         title: z.string().optional(),
         content: z.string().optional(),
         category: z.enum(["a-whim", "imagination"]).optional(),
+        publishedAt: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { id, ...data } = input;
-        return updateArticle(id, data);
+        const { id, publishedAt, ...rest } = input;
+        return updateArticle(id, {
+          ...rest,
+          ...(publishedAt ? { publishedAt: new Date(publishedAt) } : {}),
+        });
       }),
     
     delete: publicProcedure
@@ -77,7 +81,9 @@ export const appRouter = router({
   }),
 
   images: router({
-    list: publicProcedure.query(() => listImages()),
+    list: publicProcedure
+      .input(z.object({ pageKey: z.string().optional() }))
+      .query(async ({ input }) => listImages(input.pageKey)),
     
     delete: publicProcedure
       .input(z.object({ id: z.number() }))

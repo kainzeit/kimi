@@ -219,7 +219,7 @@ export async function updatePageContent(pageKey: string, content: string) {
   }
 }
 
-export async function listImages() {
+export async function listImages(pageKey?: string) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot list images: database not available");
@@ -227,7 +227,11 @@ export async function listImages() {
   }
 
   try {
-    return await db.select().from(images).orderBy(desc(images.createdAt));
+    let query = db.select().from(images);
+    if (pageKey) {
+      query = query.where(eq(images.pageKey, pageKey)) as any;
+    }
+    return await query.orderBy(desc(images.createdAt));
   } catch (error) {
     console.error("[Database] Failed to list images:", error);
     return [];

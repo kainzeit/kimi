@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 
 export default function Home() {
-  const { data: images = [], isLoading } = trpc.images.list.useQuery();
+  const { data: images = [], isLoading } = trpc.images.list.useQuery({ pageKey: "home" });
 
   return (
     <div className="pt-10 pl-16 pr-12 pb-12 h-full">

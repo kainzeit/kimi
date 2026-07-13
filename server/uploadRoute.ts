@@ -17,6 +17,11 @@ export function registerUploadRoute(app: Express) {
       let fileBuffer: Buffer | null = null;
       let fileName = "upload";
       let mimeType = "application/octet-stream";
+      let pageKey = "home";
+
+      bb.on("field", (fieldname: string, val: string) => {
+        if (fieldname === "pageKey") pageKey = val;
+      });
 
       bb.on("file", (_fieldname: string, file: NodeJS.ReadableStream, info: { filename: string; mimeType: string }) => {
         fileName = info.filename || "upload";
@@ -43,7 +48,7 @@ export function registerUploadRoute(app: Express) {
       const { url } = await storagePut(key, fileBuffer as Buffer, mimeType);
 
       // Save to DB
-      await createImage({ url, fileKey: key, uploadedBy: undefined });
+      await createImage({ url, fileKey: key, pageKey, uploadedBy: undefined });
       return res.json({ success: true, url });
     } catch (err) {
       console.error("[Upload] Error:", err);
