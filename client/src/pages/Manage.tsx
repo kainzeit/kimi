@@ -1,174 +1,330 @@
-import Layout from "@/components/Layout";
-import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2 } from "lucide-react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import Link from "@tiptap/extension-link";
 
-const PAGE_KEYS = {
-  about: "about",
-  contact: "contact",
-};
+// Rich text editor toolbar + editor
+function RichEditor({
+  content,
+  onChange,
+  placeholder,
+}: {
+  content: string;
+  onChange: (html: string) => void;
+  placeholder?: string;
+}) {
+  const editor = useEditor({
+    extensions: [StarterKit, Underline, Link.configure({ openOnClick: false })],
+    content,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class:
+          "min-h-[200px] p-4 focus:outline-none text-sm leading-relaxed tracking-wide",
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || "");
+    }
+  }, [content]);
+
+  if (!editor) return null;
+
+  return (
+    <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+      {/* Toolbar */}
+      <div className="flex gap-1 p-2 bg-muted/40" style={{ borderBottom: "1px solid var(--border)" }}>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          className={`p-1.5 rounded text-sm transition ${editor.isActive("bold") ? "bg-foreground text-background" : "hover:bg-muted"}`}
+          title="Bold"
+        >
+          <Bold className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          className={`p-1.5 rounded text-sm transition ${editor.isActive("italic") ? "bg-foreground text-background" : "hover:bg-muted"}`}
+          title="Italic"
+        >
+          <Italic className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          className={`p-1.5 rounded text-sm transition ${editor.isActive("underline") ? "bg-foreground text-background" : "hover:bg-muted"}`}
+          title="Underline"
+        >
+          <UnderlineIcon className="w-3.5 h-3.5" />
+        </button>
+        <div className="w-px bg-border mx-1" />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          className={`p-1.5 rounded text-sm transition ${editor.isActive("heading", { level: 2 }) ? "bg-foreground text-background" : "hover:bg-muted"}`}
+          title="Heading"
+        >
+          <Heading2 className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className={`p-1.5 rounded text-sm transition ${editor.isActive("bulletList") ? "bg-foreground text-background" : "hover:bg-muted"}`}
+          title="Bullet list"
+        >
+          <List className="w-3.5 h-3.5" />
+        </button>
+      </div>
+      <EditorContent editor={editor} />
+    </div>
+  );
+}
+
+type Section = "articles" | "pages" | "images";
+type PageKey = "about" | "contact" | "imagination_intro";
+type Category = "a-whim" | "imagination";
 
 export default function Manage() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"articles" | "pages">("articles");
-  const [activePageTab, setActivePageTab] = useState<"about" | "contact">("about");
-  const [isCreatingArticle, setIsCreatingArticle] = useState(false);
+  const [section, setSection] = useState<Section>("pages");
+  const [activePageKey, setActivePageKey] = useState<PageKey>("about");
+  const [articleCategory, setArticleCategory] = useState<Category>("a-whim");
+  const [isCreating, setIsCreating] = useState(false);
   const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "" });
-  const [articleCategory, setArticleCategory] = useState<"a-whim" | "imagination">("a-whim");
+  const [articleRichContent, setArticleRichContent] = useState("");
+  const [editingContent, setEditingContent] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [savingPage, setSavingPage] = useState(false);
 
   // Articles
-  const { data: articles, isLoading: articlesLoading, refetch: refetchArticles } = trpc.articles.list.useQuery({ category: articleCategory });
+  const { data: articles = [], isLoading: articlesLoading, refetch: refetchArticles } =
+    trpc.articles.list.useQuery({ category: articleCategory });
   const createArticleMutation = trpc.articles.create.useMutation();
   const deleteArticleMutation = trpc.articles.delete.useMutation();
 
   // Pages
-  const { data: pageContent, isLoading: pageLoading, refetch: refetchPage } = trpc.pages.getContent.useQuery({ pageKey: PAGE_KEYS[activePageTab] });
+  const { data: pageContent, isLoading: pageLoading, refetch: refetchPage } =
+    trpc.pages.getContent.useQuery({ pageKey: activePageKey });
   const updatePageMutation = trpc.pages.updateContent.useMutation();
-  const [editingPageContent, setEditingPageContent] = useState("");
 
-  if (!user || user.role !== "admin") {
-    return (
-      <Layout>
-        <div className="max-w-6xl mx-auto py-12">
-          <p className="text-muted-foreground">you don't have permission to access this page</p>
-        </div>
-      </Layout>
-    );
-  }
+  // Images
+  const { data: images = [], isLoading: imagesLoading, refetch: refetchImages } =
+    trpc.images.list.useQuery();
+  const deleteImageMutation = trpc.images.delete.useMutation();
+
+  // Sync page content into editor when loaded
+  useEffect(() => {
+    if (pageContent?.content !== undefined) {
+      setEditingContent(pageContent.content);
+    }
+  }, [pageContent?.content, activePageKey]);
+
+  // Manage page is directly accessible — no login required
 
   const handleCreateArticle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!articleForm.slug || !articleForm.title || !articleForm.content) return;
-
+    if (!articleForm.slug || !articleForm.title) return;
+    const content = articleRichContent || articleForm.content;
+    if (!content) return;
     try {
       await createArticleMutation.mutateAsync({
         ...articleForm,
+        content,
         category: articleCategory,
       });
       setArticleForm({ slug: "", title: "", content: "" });
-      setIsCreatingArticle(false);
+      setArticleRichContent("");
+      setIsCreating(false);
       refetchArticles();
-    } catch (error) {
-      console.error("Failed to create article:", error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const handleDeleteArticle = async (id: number) => {
-    if (!window.confirm("are you sure?")) return;
+    if (!window.confirm("delete this article?")) return;
     try {
       await deleteArticleMutation.mutateAsync({ id });
       refetchArticles();
-    } catch (error) {
-      console.error("Failed to delete article:", error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const handleSavePage = async () => {
+    setSavingPage(true);
     try {
-      await updatePageMutation.mutateAsync({
-        pageKey: PAGE_KEYS[activePageTab],
-        content: editingPageContent,
-      });
+      await updatePageMutation.mutateAsync({ pageKey: activePageKey, content: editingContent });
       refetchPage();
-    } catch (error) {
-      console.error("Failed to save page:", error);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingPage(false);
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (res.ok) refetchImages();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async (id: number) => {
+    if (!window.confirm("delete this image?")) return;
+    try {
+      await deleteImageMutation.mutateAsync({ id });
+      refetchImages();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const navBtn = (s: Section, label: string) => (
+    <button
+      onClick={() => setSection(s)}
+      className={`text-sm tracking-wide transition pb-0.5 ${
+        section === s
+          ? "text-foreground font-semibold"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  const subBtn = <T extends string>(val: T, cur: T, label: string, set: (v: T) => void) => (
+    <button
+      onClick={() => set(val)}
+      className={`text-xs tracking-wide transition ${
+        cur === val ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto py-12">
-        <h1 className="text-2xl font-bold mb-8">manage</h1>
-
-        {/* Main Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-border">
-          <button
-            onClick={() => setActiveTab("articles")}
-            className={`pb-2 px-4 font-semibold transition ${
-              activeTab === "articles"
-                ? "border-b-2 border-primary text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            articles
-          </button>
-          <button
-            onClick={() => setActiveTab("pages")}
-            className={`pb-2 px-4 font-semibold transition ${
-              activeTab === "pages"
-                ? "border-b-2 border-primary text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            pages
-          </button>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Manage Header */}
+      <div className="px-12 pt-10 pb-6 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <a href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-sm">
+            <ArrowLeft className="w-4 h-4" />
+            back
+          </a>
+          <h1 className="text-xl font-bold">manage</h1>
         </div>
+        <div className="flex gap-6">
+          {navBtn("pages", "pages")}
+          {navBtn("articles", "articles")}
+          {navBtn("images", "images")}
+        </div>
+      </div>
 
-        {/* Articles Tab */}
-        {activeTab === "articles" && (
+      <div className="px-12 pb-16">
+
+        {/* ─── PAGES SECTION ─── */}
+        {section === "pages" && (
           <div>
-            <div className="flex gap-4 mb-8 border-b border-border">
-              <button
-                onClick={() => setArticleCategory("a-whim")}
-                className={`pb-2 px-4 font-semibold transition ${
-                  articleCategory === "a-whim"
-                    ? "border-b-2 border-primary text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                a whim
-              </button>
-              <button
-                onClick={() => setArticleCategory("imagination")}
-                className={`pb-2 px-4 font-semibold transition ${
-                  articleCategory === "imagination"
-                    ? "border-b-2 border-primary text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                imagination
-              </button>
+            <div className="flex gap-6 mb-8">
+              {subBtn<PageKey>("about", activePageKey, "about", setActivePageKey)}
+              {subBtn<PageKey>("contact", activePageKey, "contact", setActivePageKey)}
             </div>
 
-            {!isCreatingArticle ? (
-              <Button onClick={() => setIsCreatingArticle(true)} className="mb-8">
-                + new article
-              </Button>
+            {pageLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              <form onSubmit={handleCreateArticle} className="mb-8 p-6 border border-border rounded space-y-4">
+              <div className="max-w-2xl space-y-4">
+                <p className="text-xs text-muted-foreground tracking-wide">
+                  editing: <span className="text-foreground">{activePageKey}</span>
+                </p>
+                <RichEditor
+                  content={editingContent}
+                  onChange={setEditingContent}
+                />
+                <Button
+                  onClick={handleSavePage}
+                  disabled={savingPage}
+                  className="text-xs"
+                  size="sm"
+                >
+                  {savingPage ? <Loader2 className="w-3 h-3 animate-spin" /> : "save"}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── ARTICLES SECTION ─── */}
+        {section === "articles" && (
+          <div>
+            <div className="flex gap-6 mb-8">
+              {subBtn<Category>("a-whim", articleCategory, "a whim", setArticleCategory)}
+              {subBtn<Category>("imagination", articleCategory, "imagination", setArticleCategory)}
+            </div>
+
+            {!isCreating ? (
+              <button
+                onClick={() => setIsCreating(true)}
+                className="text-xs text-muted-foreground hover:text-foreground transition tracking-wide mb-8 block"
+              >
+                + new article
+              </button>
+            ) : (
+              <form onSubmit={handleCreateArticle} className="max-w-2xl space-y-4 mb-10">
+                <p className="text-xs text-muted-foreground tracking-wide">new article in {articleCategory}</p>
                 <Input
                   placeholder="slug (e.g., my-first-post)"
                   value={articleForm.slug}
                   onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
                   required
+                  className="text-sm"
                 />
                 <Input
                   placeholder="title"
                   value={articleForm.title}
                   onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
                   required
+                  className="text-sm"
                 />
-                <Textarea
-                  placeholder="content"
-                  value={articleForm.content}
-                  onChange={(e) => setArticleForm({ ...articleForm, content: e.target.value })}
-                  required
-                  rows={8}
+                <RichEditor
+                  content={articleRichContent}
+                  onChange={setArticleRichContent}
+                  placeholder="write your article..."
                 />
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={createArticleMutation.isPending}>
-                    {createArticleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "save"}
+                <div className="flex gap-3">
+                  <Button type="submit" disabled={createArticleMutation.isPending} size="sm" className="text-xs">
+                    {createArticleMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "publish"}
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs"
                     onClick={() => {
-                      setIsCreatingArticle(false);
+                      setIsCreating(false);
                       setArticleForm({ slug: "", title: "", content: "" });
+                      setArticleRichContent("");
                     }}
                   >
                     cancel
@@ -178,30 +334,30 @@ export default function Manage() {
             )}
 
             {articlesLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin" />
-              </div>
-            ) : !articles || articles.length === 0 ? (
-              <p className="text-muted-foreground">no articles yet</p>
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : articles.length === 0 ? (
+              <p className="text-sm text-muted-foreground tracking-wide">no articles yet.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="max-w-2xl space-y-4">
                 {articles.map((article) => (
-                  <div key={article.id} className="p-4 border border-border rounded flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{article.title}</h3>
-                      <p className="text-sm text-muted-foreground">/{articleCategory}/{article.slug}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(article.createdAt).toLocaleDateString()}
+                  <div key={article.id} className="flex items-start justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                    <div>
+                      <p className="text-sm font-semibold">{article.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
+                        /{articleCategory}/{article.slug} ·{" "}
+                        {new Date(article.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
                       </p>
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
+                    <button
                       onClick={() => handleDeleteArticle(article.id)}
-                      disabled={deleteArticleMutation.isPending}
+                      className="text-muted-foreground hover:text-destructive transition ml-4 mt-0.5"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </Button>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -209,60 +365,51 @@ export default function Manage() {
           </div>
         )}
 
-        {/* Pages Tab */}
-        {activeTab === "pages" && (
+        {/* ─── IMAGES SECTION ─── */}
+        {section === "images" && (
           <div>
-            <div className="flex gap-4 mb-8 border-b border-border">
-              <button
-                onClick={() => {
-                  setActivePageTab("about");
-                  setEditingPageContent(pageContent?.content || "");
-                }}
-                className={`pb-2 px-4 font-semibold transition ${
-                  activePageTab === "about"
-                    ? "border-b-2 border-primary text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                about
-              </button>
-              <button
-                onClick={() => {
-                  setActivePageTab("contact");
-                  setEditingPageContent(pageContent?.content || "");
-                }}
-                className={`pb-2 px-4 font-semibold transition ${
-                  activePageTab === "contact"
-                    ? "border-b-2 border-primary text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                contact
-              </button>
-            </div>
+            <label className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition tracking-wide cursor-pointer mb-8">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isUploading}
+                className="hidden"
+              />
+              {isUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              {isUploading ? "uploading..." : "upload image"}
+            </label>
 
-            {pageLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin" />
-              </div>
+            {imagesLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : images.length === 0 ? (
+              <p className="text-sm text-muted-foreground tracking-wide">no images yet.</p>
             ) : (
-              <div className="space-y-4">
-                <Textarea
-                  value={editingPageContent}
-                  onChange={(e) => setEditingPageContent(e.target.value)}
-                  rows={12}
-                  placeholder="edit page content here..."
-                />
-                <div className="flex gap-2">
-                  <Button onClick={handleSavePage} disabled={updatePageMutation.isPending}>
-                    {updatePageMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "save"}
-                  </Button>
-                </div>
+              <div className="grid grid-cols-4 gap-4 max-w-3xl">
+                {images.map((image: { id: number; url: string }) => (
+                  <div key={image.id} className="relative group">
+                    <img
+                      src={image.url}
+                      alt=""
+                      className="w-full h-28 object-cover rounded"
+                    />
+                    <button
+                      onClick={() => handleDeleteImage(image.id)}
+                      className="absolute top-1.5 right-1.5 p-1 bg-background/80 rounded opacity-0 group-hover:opacity-100 transition hover:bg-destructive hover:text-white"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
       </div>
-    </Layout>
+    </div>
   );
 }

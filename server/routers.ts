@@ -27,24 +27,21 @@ export const appRouter = router({
       .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => getArticleBySlug(input.slug)),
     
-    create: protectedProcedure
+    create: publicProcedure
       .input(z.object({
         slug: z.string(),
         title: z.string(),
         content: z.string(),
         category: z.enum(["a-whim", "imagination"]),
       }))
-      .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== "admin") {
-          throw new Error("Only admins can create articles");
-        }
+      .mutation(async ({ input }) => {
         return createArticle({
           ...input,
-          authorId: ctx.user.id,
+          authorId: 0,
         });
       }),
     
-    update: protectedProcedure
+    update: publicProcedure
       .input(z.object({
         id: z.number(),
         slug: z.string().optional(),
@@ -52,20 +49,14 @@ export const appRouter = router({
         content: z.string().optional(),
         category: z.enum(["a-whim", "imagination"]).optional(),
       }))
-      .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== "admin") {
-          throw new Error("Only admins can update articles");
-        }
+      .mutation(async ({ input }) => {
         const { id, ...data } = input;
         return updateArticle(id, data);
       }),
     
-    delete: protectedProcedure
+    delete: publicProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== "admin") {
-          throw new Error("Only admins can delete articles");
-        }
+      .mutation(async ({ input }) => {
         return deleteArticle(input.id);
       }),
   }),
@@ -75,12 +66,9 @@ export const appRouter = router({
       .input(z.object({ pageKey: z.string() }))
       .query(async ({ input }) => getPageContent(input.pageKey)),
     
-    updateContent: protectedProcedure
+    updateContent: publicProcedure
       .input(z.object({ pageKey: z.string(), content: z.string() }))
-      .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== "admin") {
-          throw new Error("Only admins can update page content");
-        }
+      .mutation(async ({ input }) => {
         return updatePageContent(input.pageKey, input.content);
       }),
   }),
@@ -88,12 +76,9 @@ export const appRouter = router({
   images: router({
     list: publicProcedure.query(() => listImages()),
     
-    delete: protectedProcedure
+    delete: publicProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== "admin") {
-          throw new Error("Only admins can delete images");
-        }
+      .mutation(async ({ input }) => {
         return deleteImage(input.id);
       }),
   }),

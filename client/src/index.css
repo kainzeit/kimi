@@ -115,7 +115,8 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply outline-ring/50;
+    border-color: transparent;
   }
   html {
     font-family: 'Space Mono', monospace;
@@ -161,6 +162,44 @@
 
   .nav-link:hover {
     background-size: 100% 2px;
+  }
+
+  /* Rich text content rendered from Tiptap editor */
+  .prose-content p {
+    margin-bottom: 1.25rem;
+    line-height: 1.8;
+  }
+  .prose-content h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .prose-content ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .prose-content li {
+    margin-bottom: 0.4rem;
+  }
+  .prose-content strong {
+    font-weight: 700;
+  }
+  .prose-content em {
+    font-style: italic;
+  }
+  .prose-content u {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose-content a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    opacity: 0.8;
+  }
+  .prose-content a:hover {
+    opacity: 1;
   }
 
   /**

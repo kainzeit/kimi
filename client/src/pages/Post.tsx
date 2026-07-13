@@ -1,50 +1,65 @@
-import Layout from "@/components/Layout";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 
 export default function Post() {
   const params = useParams();
+  const [location] = useLocation();
   const slug = params.slug as string;
-  const { data: article, isLoading } = trpc.articles.get.useQuery({ slug: slug || "" }, { enabled: !!slug });
+
+  // Determine category from URL path
+  const isImagination = location.startsWith("/imagination/");
+  const backHref = isImagination ? "/imagination" : "/a-whim";
+  const backLabel = isImagination ? "← imagination" : "← a whim";
+
+  const { data: article, isLoading } = trpc.articles.get.useQuery(
+    { slug: slug || "" },
+    { enabled: !!slug }
+  );
+
+  const isHtml = article?.content?.trim().startsWith("<");
 
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto py-12">
-        <Link href="/a-whim" className="text-sm hover:opacity-70 transition mb-6 inline-block">
-          ← a whim
-        </Link>
-        
-        <div className="mt-8">
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin" />
-            </div>
-          ) : !article ? (
-            <p className="text-muted-foreground">article not found</p>
-          ) : (
-            <article>
-              <p className="text-sm text-muted-foreground mb-4">
-                {new Date(article.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
-              <h1 className="text-3xl font-bold mb-6">{article.title}</h1>
-              <div className="max-w-2xl space-y-4 leading-relaxed">
-                {article.content.split('\n').map((paragraph, idx) => (
-                  paragraph.trim() && (
-                    <p key={idx}>
-                      {paragraph}
-                    </p>
-                  )
-                ))}
-              </div>
-            </article>
-          )}
+    <div className="pt-10 pl-16 pr-12 pb-12">
+      <Link
+        href={backHref}
+        className="text-xs text-muted-foreground hover:text-foreground transition tracking-wide inline-block mb-8"
+      >
+        {backLabel}
+      </Link>
+
+      {isLoading ? (
+        <div className="flex py-12">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
-      </div>
-    </Layout>
+      ) : !article ? (
+        <p className="text-sm text-muted-foreground">article not found.</p>
+      ) : (
+        <article className="max-w-xl">
+          <p className="text-xs text-muted-foreground mb-4 tracking-wide">
+            {new Date(article.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+          <h1 className="text-2xl font-bold mb-8">{article.title}</h1>
+          {isHtml ? (
+            <div
+              className="prose-content text-sm leading-loose tracking-wide"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
+          ) : (
+            <div className="text-sm leading-loose tracking-wide space-y-5">
+              {article.content.split("\n").map((paragraph, idx) =>
+                paragraph.trim() ? (
+                  <p key={idx}>{paragraph}</p>
+                ) : null
+              )}
+            </div>
+          )}
+        </article>
+      )}
+    </div>
   );
 }
