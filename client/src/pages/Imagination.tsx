@@ -6,6 +6,20 @@ const CONTENT_TOP = "169px";
 const IMG_SIZE = "227px";
 const IMG_GAP = "113px";
 
+/** Extract the first sentence/line of plain text from HTML or plain content */
+function getPreview(content: string): string {
+  let text = content;
+  // Strip HTML tags if content is HTML
+  if (text.trim().startsWith("<")) {
+    text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  }
+  // Take up to the first sentence boundary or 120 chars
+  const match = text.match(/^(.{10,120}?[.!?。！？])/);
+  if (match) return match[1];
+  // Fallback: first 100 chars
+  return text.slice(0, 100).trim() + (text.length > 100 ? "…" : "");
+}
+
 export default function Imagination() {
   const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "imagination" });
   const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "imagination" });
@@ -19,7 +33,7 @@ export default function Imagination() {
             <Loader2 className="w-5 h-5 animate-spin" />
           </div>
         ) : !articles || articles.length === 0 ? (
-          <p className="text-sm text-muted-foreground tracking-wide">nothing here yet.</p>
+          <p className="text-base text-muted-foreground tracking-wide">nothing here yet.</p>
         ) : (
           <div className="space-y-8">
             {articles.map((article) => (
@@ -34,6 +48,11 @@ export default function Imagination() {
                     day: "numeric",
                   })}
                 </p>
+                {article.content && (
+                  <p className="text-sm text-muted-foreground tracking-wide mt-2 leading-relaxed max-w-lg">
+                    {getPreview(article.content)}
+                  </p>
+                )}
               </div>
             ))}
           </div>

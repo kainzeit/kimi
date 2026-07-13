@@ -36,11 +36,11 @@ export default function About() {
           </div>
         ) : isHtml ? (
           <div
-            className="max-w-xl prose-content text-sm leading-loose tracking-wide"
+            className="max-w-xl prose-content text-base leading-loose tracking-wide"
             dangerouslySetInnerHTML={{ __html: rawContent }}
           />
         ) : (
-          <div className="max-w-xl text-sm leading-loose tracking-wide space-y-5">
+          <div className="max-w-xl text-base leading-loose tracking-wide space-y-5">
             {rawContent.split("\n").map((line, idx) =>
               line.trim() ? (
                 <p key={idx}>{line}</p>

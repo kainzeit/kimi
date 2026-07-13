@@ -31,7 +31,6 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
   const isPreview = useIsPreviewMode();
 
   const navItems = [
-    { href: "/", label: "home" },
     { href: "/about", label: "about" },
     { href: "/a-whim", label: "a whim" },
     { href: "/imagination", label: "imagination" },

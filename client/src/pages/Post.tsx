@@ -59,11 +59,11 @@ export default function Post() {
           <h1 className="text-2xl font-bold mb-8">{article.title}</h1>
           {isHtml ? (
             <div
-              className="prose-content text-sm leading-loose tracking-wide"
+              className="prose-content text-base leading-loose tracking-wide"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
           ) : (
-            <div className="text-sm leading-loose tracking-wide space-y-5">
+            <div className="text-base leading-loose tracking-wide space-y-5">
               {article.content.split("\n").map((paragraph, idx) =>
                 paragraph.trim() ? (
                   <p key={idx}>{paragraph}</p>

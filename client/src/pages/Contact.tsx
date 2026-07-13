@@ -30,11 +30,11 @@ export default function Contact() {
           </div>
         ) : isHtml ? (
           <div
-            className="max-w-xl prose-content text-sm leading-loose tracking-wide"
+            className="max-w-xl prose-content text-base leading-loose tracking-wide"
             dangerouslySetInnerHTML={{ __html: rawContent }}
           />
         ) : (
-          <div className="max-w-xl text-sm leading-loose tracking-wide space-y-5">
+          <div className="max-w-xl text-base leading-loose tracking-wide space-y-5">
             {rawContent.split("\n").map((line, idx) => {
               if (!line.trim()) return null;
               if (line.includes("http")) {
