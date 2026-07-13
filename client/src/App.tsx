@@ -7,9 +7,10 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import AWhim from "./pages/AWhim";
+import Post from "./pages/Post";
 import Imagination from "./pages/Imagination";
 import Contact from "./pages/Contact";
-import Post from "./pages/Post";
+import Manage from "./pages/Manage";
 
 function Router() {
   return (
@@ -17,11 +18,11 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/about"} component={About} />
       <Route path={"/a-whim"} component={AWhim} />
+      <Route path={"/a-whim/:slug"} component={Post} />
       <Route path={"/imagination"} component={Imagination} />
       <Route path={"/contact"} component={Contact} />
-      <Route path={"/a-whim/:slug"} component={Post} />
+      <Route path={"/manage"} component={Manage} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -30,7 +31,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="light">
+      <ThemeProvider defaultTheme="light" switchable>
         <TooltipProvider>
           <Toaster />
           <Router />
