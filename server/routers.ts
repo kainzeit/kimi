@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle, getPageContent, updatePageContent } from "./db";
+import { listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle, getPageContent, updatePageContent, listImages, deleteImage } from "./db";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -82,6 +82,19 @@ export const appRouter = router({
           throw new Error("Only admins can update page content");
         }
         return updatePageContent(input.pageKey, input.content);
+      }),
+  }),
+
+  images: router({
+    list: publicProcedure.query(() => listImages()),
+    
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== "admin") {
+          throw new Error("Only admins can delete images");
+        }
+        return deleteImage(input.id);
       }),
   }),
 });

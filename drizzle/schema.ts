@@ -61,3 +61,21 @@ export const pageContent = mysqlTable("pageContent", {
 
 export type PageContent = typeof pageContent.$inferSelect;
 export type InsertPageContent = typeof pageContent.$inferInsert;
+
+export const images = mysqlTable("images", {
+  id: int("id").autoincrement().primaryKey(),
+  url: varchar("url", { length: 512 }).notNull(),
+  fileKey: varchar("fileKey", { length: 255 }).notNull().unique(),
+  uploadedBy: int("uploadedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Image = typeof images.$inferSelect;
+export type InsertImage = typeof images.$inferInsert;
+
+export const imagesRelations = relations(images, ({ one }) => ({
+  uploader: one(users, {
+    fields: [images.uploadedBy],
+    references: [users.id],
+  }),
+}));

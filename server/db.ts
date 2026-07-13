@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, articles, InsertArticle, pageContent } from "../drizzle/schema";
+import { InsertUser, users, articles, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -215,6 +215,50 @@ export async function updatePageContent(pageKey: string, content: string) {
     }
   } catch (error) {
     console.error("[Database] Failed to update page content:", error);
+    throw error;
+  }
+}
+
+export async function listImages() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot list images: database not available");
+    return [];
+  }
+
+  try {
+    return await db.select().from(images).orderBy(desc(images.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to list images:", error);
+    return [];
+  }
+}
+
+export async function createImage(data: InsertImage) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db.insert(images).values(data);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to create image:", error);
+    throw error;
+  }
+}
+
+export async function deleteImage(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.delete(images).where(eq(images.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete image:", error);
     throw error;
   }
 }
