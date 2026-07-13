@@ -15,8 +15,20 @@ import { useState, useEffect } from "react";
 import { Moon, Sun, Settings } from "lucide-react";
 import { Link } from "wouter";
 
+function useIsPreviewMode() {
+  const [isPreview, setIsPreview] = useState(false);
+  useEffect(() => {
+    // Show manage icon only when inside Manus preview iframe or with ?admin param
+    const inIframe = window.self !== window.top;
+    const hasAdminParam = new URLSearchParams(window.location.search).has("admin");
+    setIsPreview(inIframe || hasAdminParam);
+  }, []);
+  return isPreview;
+}
+
 function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme: () => void }) {
   const [location] = useLocation();
+  const isPreview = useIsPreviewMode();
 
   const navItems = [
     { href: "/", label: "home" },
@@ -62,13 +74,15 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
         >
           {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
         </button>
-        <Link
-          href="/manage"
-          className="flex items-center justify-center w-8 h-8 rounded hover:bg-muted transition"
-          title="Manage"
-        >
-          <Settings className="w-4 h-4" />
-        </Link>
+        {isPreview && (
+          <Link
+            href="/manage"
+            className="flex items-center justify-center w-8 h-8 rounded hover:bg-muted transition"
+            title="Manage"
+          >
+            <Settings className="w-4 h-4" />
+          </Link>
+        )}
       </div>
     </div>
   );

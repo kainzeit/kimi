@@ -33,11 +33,14 @@ export const appRouter = router({
         title: z.string(),
         content: z.string(),
         category: z.enum(["a-whim", "imagination"]),
+        publishedAt: z.string().optional(), // ISO date string from manual date input
       }))
       .mutation(async ({ input }) => {
+        const { publishedAt, ...rest } = input;
         return createArticle({
-          ...input,
+          ...rest,
           authorId: 0,
+          publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
         });
       }),
     

@@ -1,0 +1,1 @@
+ALTER TABLE `articles` ADD `publishedAt` timestamp DEFAULT (now()) NOT NULL;

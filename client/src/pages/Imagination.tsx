@@ -23,7 +23,7 @@ export default function Imagination() {
                 <h2 className="text-base font-semibold nav-link inline-block mb-1">{article.title}</h2>
               </Link>
               <p className="text-xs text-muted-foreground tracking-wide mt-1">
-                {new Date(article.createdAt).toLocaleDateString("en-US", {
+                {new Date(article.publishedAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",

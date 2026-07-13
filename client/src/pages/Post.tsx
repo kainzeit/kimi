@@ -37,7 +37,7 @@ export default function Post() {
       ) : (
         <article className="max-w-xl">
           <p className="text-xs text-muted-foreground mb-4 tracking-wide">
-            {new Date(article.createdAt).toLocaleDateString("en-US", {
+            {new Date(article.publishedAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",

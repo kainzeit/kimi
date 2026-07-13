@@ -100,7 +100,8 @@ export default function Manage() {
   const [activePageKey, setActivePageKey] = useState<PageKey>("about");
   const [articleCategory, setArticleCategory] = useState<Category>("a-whim");
   const [isCreating, setIsCreating] = useState(false);
-  const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "" });
+  const today = new Date().toISOString().split("T")[0];
+  const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "", publishedAt: today });
   const [articleRichContent, setArticleRichContent] = useState("");
   const [editingContent, setEditingContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -141,8 +142,9 @@ export default function Manage() {
         ...articleForm,
         content,
         category: articleCategory,
+        publishedAt: articleForm.publishedAt,
       });
-      setArticleForm({ slug: "", title: "", content: "" });
+      setArticleForm({ slug: "", title: "", content: "", publishedAt: new Date().toISOString().split("T")[0] });
       setArticleRichContent("");
       setIsCreating(false);
       refetchArticles();
@@ -307,6 +309,16 @@ export default function Manage() {
                   required
                   className="text-sm"
                 />
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground tracking-wide">date</label>
+                  <Input
+                    type="date"
+                    value={articleForm.publishedAt}
+                    onChange={(e) => setArticleForm({ ...articleForm, publishedAt: e.target.value })}
+                    required
+                    className="text-sm w-44"
+                  />
+                </div>
                 <RichEditor
                   content={articleRichContent}
                   onChange={setArticleRichContent}
@@ -323,7 +335,7 @@ export default function Manage() {
                     className="text-xs"
                     onClick={() => {
                       setIsCreating(false);
-                      setArticleForm({ slug: "", title: "", content: "" });
+                      setArticleForm({ slug: "", title: "", content: "", publishedAt: new Date().toISOString().split("T")[0] });
                       setArticleRichContent("");
                     }}
                   >

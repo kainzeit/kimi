@@ -101,7 +101,7 @@ export async function listArticles(category: string) {
       .select()
       .from(articles)
       .where(eq(articles.category, category as any))
-      .orderBy(desc(articles.createdAt));
+      .orderBy(desc(articles.publishedAt));
     return result;
   } catch (error) {
     console.error("[Database] Failed to list articles:", error);

@@ -33,6 +33,7 @@ export const articles = mysqlTable("articles", {
   content: longtext("content").notNull(),
   category: mysqlEnum("category", ["a-whim", "imagination"]).notNull(),
   authorId: int("authorId").notNull(),
+  publishedAt: timestamp("publishedAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -11,18 +11,21 @@ export default function Home() {
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
       ) : images.length === 0 ? (
-        <div className="flex items-center justify-center h-64">
-          {/* Empty — intentionally blank */}
-        </div>
+        <div />
       ) : (
-        <div className="columns-2 gap-4 space-y-4">
+        <div className="flex flex-wrap gap-4">
           {images.map((image: { id: number; url: string }) => (
-            <img
+            <div
               key={image.id}
-              src={image.url}
-              alt=""
-              className="w-full rounded break-inside-avoid"
-            />
+              style={{ width: "190px", height: "190px", flexShrink: 0 }}
+            >
+              <img
+                src={image.url}
+                alt=""
+                style={{ width: "190px", height: "190px", objectFit: "cover" }}
+                className="rounded"
+              />
+            </div>
           ))}
         </div>
       )}
