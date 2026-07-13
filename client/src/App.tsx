@@ -58,7 +58,7 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
                   ? "text-foreground font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              style={{ fontSize: "14px" }}
+              style={{ fontSize: "16px" }}
             >
               {item.label}
             </Link>
