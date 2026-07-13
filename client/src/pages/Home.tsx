@@ -5,8 +5,8 @@ export default function Home() {
   const { data: images = [], isLoading } = trpc.images.list.useQuery({ pageKey: "home" });
 
   return (
-    // pt matches sidebar paddingTop (95px) so images align with kimi. heading
-    <div style={{ paddingTop: "95px", paddingLeft: "64px", paddingRight: "48px", paddingBottom: "48px" }} className="h-full">
+    // pt matches sidebar 'home' nav item position (~169px)
+    <div style={{ paddingTop: "169px", paddingLeft: "64px", paddingRight: "48px", paddingBottom: "48px" }} className="h-full">
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />

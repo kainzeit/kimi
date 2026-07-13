@@ -76,7 +76,17 @@ function RichEditor({
             <input
               type="color"
               className="absolute opacity-0 w-0 h-0"
-              onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+              onMouseDown={() => {
+                // Save the current selection before the color picker steals focus
+                editor.commands.focus();
+              }}
+              onInput={(e) => {
+                const color = (e.target as HTMLInputElement).value;
+                editor.chain().focus().setColor(color).run();
+              }}
+              onChange={(e) => {
+                editor.chain().focus().setColor(e.target.value).run();
+              }}
             />
             <span
               className="w-3 h-1 rounded-sm block"
@@ -85,7 +95,10 @@ function RichEditor({
           </label>
           <button
             type="button"
-            onClick={() => editor.chain().focus().unsetColor().run()}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().unsetColor().run();
+            }}
             className="p-1.5 rounded hover:bg-muted text-xs text-muted-foreground"
             title="Remove color"
           >

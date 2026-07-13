@@ -209,6 +209,13 @@
   .prose-content a:hover {
     opacity: 1;
   }
+  /* Preserve inline text colors set by the rich text editor */
+  .prose-content span[style] {
+    color: revert;
+  }
+  .ProseMirror span[style] {
+    color: revert;
+  }
 
   /**
    * Custom container utility that centers content and adds responsive padding.
