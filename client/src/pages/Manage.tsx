@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -77,7 +77,6 @@ function RichEditor({
               type="color"
               className="absolute opacity-0 w-0 h-0"
               onMouseDown={() => {
-                // Save the current selection before the color picker steals focus
                 editor.commands.focus();
               }}
               onInput={(e) => {
@@ -128,9 +127,175 @@ function RichEditor({
   );
 }
 
-type Section = "articles" | "pages" | "images";
+type Section = "articles" | "pages" | "images" | "dashboard" | "greeting";
 type PageKey = "about" | "contact" | "imagination_intro";
 type Category = "a-whim" | "imagination";
+
+// ---- Dashboard Section ----
+function DashboardSection() {
+  const { data: accessLogs = [], isLoading: logsLoading } = trpc.admin.accessLogs.useQuery({ limit: 100 });
+  const { data: articleViews = [], isLoading: viewsLoading } = trpc.admin.articleViews.useQuery();
+
+  return (
+    <div className="space-y-12">
+      {/* Access Logs */}
+      <div>
+        <h2 className="text-sm font-semibold mb-4 tracking-wide">access log</h2>
+        {logsLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (accessLogs as any[]).length === 0 ? (
+          <p className="text-sm text-muted-foreground tracking-wide">no access attempts yet.</p>
+        ) : (
+          <div className="max-w-3xl overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  <th className="text-left py-2 pr-4 text-muted-foreground font-normal tracking-wide">time</th>
+                  <th className="text-left py-2 pr-4 text-muted-foreground font-normal tracking-wide">ip</th>
+                  <th className="text-left py-2 pr-4 text-muted-foreground font-normal tracking-wide">input</th>
+                  <th className="text-left py-2 pr-4 text-muted-foreground font-normal tracking-wide">result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(accessLogs as any[]).map((log: any) => (
+                  <tr key={log.id} style={{ borderBottom: "1px solid var(--border)" }} className="hover:bg-muted/30 transition">
+                    <td className="py-2 pr-4 text-muted-foreground">
+                      {new Date(log.createdAt).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className="py-2 pr-4 font-mono">{log.ip ?? "—"}</td>
+                    <td className="py-2 pr-4 font-mono">{log.input ?? "—"}</td>
+                    <td className="py-2 pr-4">
+                      {log.success === "yes" ? (
+                        <span className="flex items-center gap-1 text-green-500">
+                          <Check className="w-3 h-3" /> yes
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-red-400">
+                          <AlertCircle className="w-3 h-3" /> no
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Article Views */}
+      <div>
+        <h2 className="text-sm font-semibold mb-4 tracking-wide">article views</h2>
+        {viewsLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (articleViews as any[]).length === 0 ? (
+          <p className="text-sm text-muted-foreground tracking-wide">no views tracked yet.</p>
+        ) : (
+          <div className="max-w-xl space-y-2">
+            {(articleViews as any[]).map((av: any) => (
+              <div
+                key={av.id}
+                className="flex items-center justify-between py-2"
+                style={{ borderBottom: "1px solid var(--border)" }}
+              >
+                <span className="text-xs font-mono text-muted-foreground">{av.articleSlug}</span>
+                <span className="text-xs font-semibold">{av.views} view{av.views !== 1 ? "s" : ""}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---- Greeting Config Section ----
+function GreetingSection() {
+  const { data: promptVal, refetch: refetchPrompt } = trpc.admin.getConfig.useQuery({ key: "greeting_prompt" });
+  const { data: keywordVal, refetch: refetchKeyword } = trpc.admin.getConfig.useQuery({ key: "greeting_keyword" });
+  const setConfig = trpc.admin.setConfig.useMutation();
+
+  const [prompt, setPrompt] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (promptVal !== undefined && promptVal !== null) setPrompt(promptVal as string);
+  }, [promptVal]);
+
+  useEffect(() => {
+    if (keywordVal !== undefined && keywordVal !== null) setKeyword(keywordVal as string);
+  }, [keywordVal]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await setConfig.mutateAsync({ key: "greeting_prompt", value: prompt });
+      await setConfig.mutateAsync({ key: "greeting_keyword", value: keyword });
+      await refetchPrompt();
+      await refetchKeyword();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md space-y-6">
+      <p className="text-xs text-muted-foreground tracking-wide leading-relaxed">
+        configure the greeting gate. visitors must type the keyword to enter.
+        separate multiple accepted keywords with commas (e.g. "hi, hello, hey").
+      </p>
+
+      <div className="space-y-2">
+        <label className="text-xs text-muted-foreground tracking-wide">prompt text</label>
+        <Input
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="please say hi to enter"
+          className="text-sm"
+        />
+        <p className="text-xs text-muted-foreground">shown to visitors on the greeting page</p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs text-muted-foreground tracking-wide">keyword(s)</label>
+        <Input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="hi"
+          className="text-sm"
+        />
+        <p className="text-xs text-muted-foreground">comma-separated list of accepted inputs (case-insensitive)</p>
+      </div>
+
+      <Button
+        onClick={handleSave}
+        disabled={saving}
+        size="sm"
+        className="text-xs"
+      >
+        {saving ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : saved ? (
+          <><Check className="w-3 h-3 mr-1" /> saved</>
+        ) : (
+          "save"
+        )}
+      </Button>
+    </div>
+  );
+}
 
 export default function Manage() {
   const [section, setSection] = useState<Section>("pages");
@@ -144,6 +309,7 @@ export default function Manage() {
   const [editingContent, setEditingContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [savingPage, setSavingPage] = useState(false);
+
   // Articles
   const { data: articles = [], isLoading: articlesLoading, refetch: refetchArticles } =
     trpc.articles.list.useQuery({ category: articleCategory });
@@ -298,6 +464,8 @@ export default function Manage() {
           {navBtn("pages", "pages")}
           {navBtn("articles", "articles")}
           {navBtn("images", "images")}
+          {navBtn("dashboard", "dashboard")}
+          {navBtn("greeting", "greeting")}
         </div>
       </div>
 
@@ -509,6 +677,12 @@ export default function Manage() {
             )}
           </div>
         )}
+
+        {/* DASHBOARD */}
+        {section === "dashboard" && <DashboardSection />}
+
+        {/* GREETING CONFIG */}
+        {section === "greeting" && <GreetingSection />}
       </div>
     </div>
   );

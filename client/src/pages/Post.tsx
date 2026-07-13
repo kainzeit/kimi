@@ -1,6 +1,7 @@
 import { Link, useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export default function Post() {
   const params = useParams();
@@ -16,6 +17,18 @@ export default function Post() {
     { slug: slug || "" },
     { enabled: !!slug }
   );
+
+  // Track article view count — fire once per mount, use ref to prevent double-fire in React strict mode
+  const viewTracked = useRef(false);
+  const incrementView = trpc.views.increment.useMutation();
+
+  useEffect(() => {
+    if (slug && !viewTracked.current) {
+      viewTracked.current = true;
+      incrementView.mutate({ slug });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
   const isHtml = article?.content?.trim().startsWith("<");
 

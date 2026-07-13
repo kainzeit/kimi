@@ -11,6 +11,7 @@ import Imagination from "./pages/Imagination";
 import Contact from "./pages/Contact";
 import Post from "./pages/Post";
 import Manage from "./pages/Manage";
+import Greeting from "./pages/Greeting";
 import { useState, useEffect } from "react";
 import { Moon, Sun, Settings } from "lucide-react";
 import { Link } from "wouter";
@@ -18,7 +19,6 @@ import { Link } from "wouter";
 function useIsPreviewMode() {
   const [isPreview, setIsPreview] = useState(false);
   useEffect(() => {
-    // Show manage icon only when inside Manus preview iframe or with ?admin param
     const inIframe = window.self !== window.top;
     const hasAdminParam = new URLSearchParams(window.location.search).has("admin");
     setIsPreview(inIframe || hasAdminParam);
@@ -106,10 +106,25 @@ function MainLayout({ children, theme, toggleTheme }: {
 
 function AppRoutes({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme: () => void }) {
   const [location] = useLocation();
+  const [greeted, setGreeted] = useState<boolean>(() => {
+    // Check sessionStorage so the gate doesn't re-appear on page refresh
+    return sessionStorage.getItem("kimi-greeted") === "yes";
+  });
+
   const isManage = location === "/manage";
 
+  // /manage bypasses the greeting gate (admin access)
   if (isManage) {
     return <Manage />;
+  }
+
+  // Show greeting gate until visitor says hi
+  if (!greeted) {
+    return (
+      <div className="bg-background text-foreground min-h-screen">
+        <Greeting onEnter={() => setGreeted(true)} />
+      </div>
+    );
   }
 
   return (

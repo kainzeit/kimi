@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, articles, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -263,6 +263,83 @@ export async function deleteImage(id: number) {
     return await db.delete(images).where(eq(images.id, id));
   } catch (error) {
     console.error("[Database] Failed to delete image:", error);
+    throw error;
+  }
+}
+
+// ---- Access Logs ----
+import { accessLogs, articleViews, siteConfig, InsertAccessLog } from "../drizzle/schema";
+
+export async function createAccessLog(data: InsertAccessLog) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(accessLogs).values(data);
+  } catch (error) {
+    console.error("[Database] Failed to create access log:", error);
+  }
+}
+
+export async function listAccessLogs(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    return await db.select().from(accessLogs).orderBy(desc(accessLogs.createdAt)).limit(limit);
+  } catch (error) {
+    console.error("[Database] Failed to list access logs:", error);
+    return [];
+  }
+}
+
+// ---- Article Views ----
+export async function incrementArticleView(slug: string) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    // Try upsert: insert with views=1, on duplicate key increment by 1
+    await db
+      .insert(articleViews)
+      .values({ articleSlug: slug, views: 1 })
+      .onDuplicateKeyUpdate({ set: { views: sql`${articleViews.views} + 1` } });
+  } catch (err) {
+    console.error("[Database] Failed to increment article view:", err);
+  }
+}
+
+export async function listArticleViews() {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    return await db.select().from(articleViews).orderBy(desc(articleViews.views));
+  } catch (error) {
+    console.error("[Database] Failed to list article views:", error);
+    return [];
+  }
+}
+
+// ---- Site Config ----
+export async function getSiteConfig(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const result = await db.select().from(siteConfig).where(eq(siteConfig.key, key)).limit(1);
+    return result.length > 0 ? result[0].value : null;
+  } catch (error) {
+    console.error("[Database] Failed to get site config:", error);
+    return null;
+  }
+}
+
+export async function setSiteConfig(key: string, value: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    await db
+      .insert(siteConfig)
+      .values({ key, value })
+      .onDuplicateKeyUpdate({ set: { value } });
+  } catch (error) {
+    console.error("[Database] Failed to set site config:", error);
     throw error;
   }
 }

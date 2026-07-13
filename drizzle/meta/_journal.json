@@ -43,6 +43,13 @@
       "when": 1783971767099,
       "tag": "0005_graceful_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1783973887936,
+      "tag": "0006_brown_zombie",
+      "breakpoints": true
     }
   ]
 }

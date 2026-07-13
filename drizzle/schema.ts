@@ -81,3 +81,38 @@ export const imagesRelations = relations(images, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Access log: records every greeting attempt (success or fail)
+export const accessLogs = mysqlTable("accessLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  ip: varchar("ip", { length: 64 }),
+  userAgent: text("userAgent"),
+  input: varchar("input", { length: 255 }),
+  success: mysqlEnum("success", ["yes", "no"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AccessLog = typeof accessLogs.$inferSelect;
+export type InsertAccessLog = typeof accessLogs.$inferInsert;
+
+// Article view count: one row per article, incremented on each visit
+export const articleViews = mysqlTable("articleViews", {
+  id: int("id").autoincrement().primaryKey(),
+  articleSlug: varchar("articleSlug", { length: 255 }).notNull().unique(),
+  views: int("views").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ArticleView = typeof articleViews.$inferSelect;
+export type InsertArticleView = typeof articleViews.$inferInsert;
+
+// Site config: key-value store for greeting prompt and keyword
+export const siteConfig = mysqlTable("siteConfig", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 128 }).notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SiteConfig = typeof siteConfig.$inferSelect;
+export type InsertSiteConfig = typeof siteConfig.$inferInsert;

@@ -1,0 +1,22 @@
+# Project TODO
+
+- [x] Full website clone with React 19 + Tailwind 4 + Express + tRPC + MySQL
+- [x] Space Mono font applied globally
+- [x] Left sidebar navigation layout (fixed left, content on right)
+- [x] Dark mode toggle (moon/sun icon in sidebar bottom)
+- [x] Manage icon hidden from public site (only visible in Manus preview iframe or ?admin param)
+- [x] All pages: Home, About, A Whim, Imagination, Contact, Post (article detail)
+- [x] Per-page image upload and display
+- [x] Rich text editor (Tiptap) with text color support
+- [x] Article CRUD with manual date input
+- [x] Page content editing (About, Contact) via Manage backend
+- [x] Yellow wavy underline hover effect on nav links
+- [x] Database tables: users, articles, pageContent, images, accessLogs, articleViews, siteConfig
+- [x] DB helpers added for accessLogs, articleViews, siteConfig in server/db.ts
+- [x] Server routers updated with greeting, admin, views endpoints
+- [x] Greeting gate page (Greeting.tsx) - visitor must type 'hi' to enter
+- [x] App.tsx updated to show Greeting gate before main site (with sessionStorage persistence)
+- [x] Article view count tracking in Post.tsx (useEffect + ref to prevent double-fire)
+- [x] Fixed incrementArticleView to use SQL raw increment (sql`views + 1`)
+- [x] Dashboard in Manage page (access logs table + article view counts)
+- [x] Greeting config editor in Manage (edit prompt text and keyword)
