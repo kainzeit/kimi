@@ -13,16 +13,26 @@ thanks for making it this far :)`;
 
 export default function About() {
   const { data: pageContent, isLoading } = trpc.pages.getContent.useQuery({ pageKey: "about" });
+  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "about" });
 
   const rawContent = pageContent?.content || DEFAULT_CONTENT;
-
-  // If content is HTML (from rich text editor), render as HTML; otherwise render as plain text lines
   const isHtml = rawContent.trim().startsWith("<");
 
   return (
-    <div className="pt-10 pl-16 pr-12 pb-12">
-      {/* Title aligned with sidebar's kimi. heading */}
-      <h1 className="text-2xl font-bold mb-10">about</h1>
+    <div style={{ paddingTop: "95px", paddingLeft: "64px", paddingRight: "48px", paddingBottom: "48px" }}>
+      {/* Images for this page */}
+      {images.length > 0 && (
+        <div className="flex flex-wrap gap-4 mb-10">
+          {(images as any[]).map((image) => (
+            <img
+              key={image.id}
+              src={image.url}
+              alt=""
+              style={{ width: "190px", height: "190px", objectFit: "cover", borderRadius: "4px" }}
+            />
+          ))}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex py-12">

@@ -2,11 +2,13 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2 } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
+import Color from "@tiptap/extension-color";
+import { TextStyle } from "@tiptap/extension-text-style";
 
 function RichEditor({
   content,
@@ -18,7 +20,7 @@ function RichEditor({
   placeholder?: string;
 }) {
   const editor = useEditor({
-    extensions: [StarterKit, Underline, Link.configure({ openOnClick: false })],
+    extensions: [StarterKit, Underline, Link.configure({ openOnClick: false }), TextStyle, Color],
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -66,6 +68,30 @@ function RichEditor({
         >
           <UnderlineIcon className="w-3.5 h-3.5" />
         </button>
+        <div className="w-px bg-border mx-1" />
+        {/* Text color picker */}
+        <div className="relative flex items-center" title="Text color">
+          <label className="p-1.5 rounded hover:bg-muted cursor-pointer flex items-center gap-1" title="Text color">
+            <Palette className="w-3.5 h-3.5" />
+            <input
+              type="color"
+              className="absolute opacity-0 w-0 h-0"
+              onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+            />
+            <span
+              className="w-3 h-1 rounded-sm block"
+              style={{ backgroundColor: editor.getAttributes("textStyle").color || "currentColor" }}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().unsetColor().run()}
+            className="p-1.5 rounded hover:bg-muted text-xs text-muted-foreground"
+            title="Remove color"
+          >
+            ✕
+          </button>
+        </div>
         <div className="w-px bg-border mx-1" />
         <button
           type="button"

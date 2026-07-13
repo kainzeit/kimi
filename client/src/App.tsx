@@ -44,7 +44,7 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
   };
 
   return (
-    <div className="w-44 shrink-0 p-8 pt-10 flex flex-col justify-between h-screen sticky top-0" style={{ marginLeft: "30px", marginTop: "10px" }}>
+    <div className="w-44 shrink-0 flex flex-col justify-between h-screen sticky top-0" style={{ marginLeft: "152px", paddingTop: "95px", paddingBottom: "32px" }}>
       <div>
         <Link href="/">
           <h1 className="font-bold mb-10 cursor-pointer hover:opacity-70 transition" style={{ fontSize: "28px" }}>kimi.</h1>
