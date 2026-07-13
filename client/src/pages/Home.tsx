@@ -1,25 +1,26 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import Layout from "@/components/Layout";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
- */
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
+    <Layout>
+      <div className="max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-12">
+          <div>
+            <p className="text-sm text-gray-600 mb-4">a little person sleeping at their desk</p>
+            <div className="w-full h-64 bg-gray-200 rounded border-2 border-dashed border-yellow-400 flex items-center justify-center">
+              [Image placeholder]
+            </div>
+          </div>
+          <div className="space-y-4">
+            <p className="text-lg leading-relaxed">
+              just a regular person who likes building things
+            </p>
+            <p className="text-sm text-gray-600">
+              exploring ideas through code and design
+            </p>
+          </div>
+        </div>
+      </div>
+    </Layout>
   );
 }
