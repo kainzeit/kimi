@@ -1,11 +1,8 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -17,44 +14,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/" className="text-2xl font-bold hover:opacity-70 transition">
               kimi.
             </Link>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={toggleTheme}
-                className="p-2 hover:bg-muted rounded transition"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-4 h-4" />
-                ) : (
-                  <Moon className="w-4 h-4" />
-                )}
-              </button>
-              {isAuthenticated && (
-                <button
-                  onClick={() => logout()}
-                  className="text-sm hover:opacity-70 transition"
-                >
-                  logout
-                </button>
+            <button
+              onClick={toggleTheme}
+              className="p-2 hover:bg-muted rounded transition"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
               )}
-              {!isAuthenticated && (
-                <button
-                  onClick={() => startLogin()}
-                  className="text-sm hover:opacity-70 transition"
-                >
-                  login
-                </button>
-              )}
-            </div>
+            </button>
           </div>
           <ul className="flex flex-col gap-1 text-sm">
-            <li><Link href="/about" className="hover:opacity-70 transition">about</Link></li>
-            <li><Link href="/a-whim" className="hover:opacity-70 transition">a whim</Link></li>
-            <li><Link href="/imagination" className="hover:opacity-70 transition">imagination</Link></li>
-            <li><Link href="/contact" className="hover:opacity-70 transition">contact</Link></li>
-            {isAuthenticated && (
-              <li><Link href="/manage" className="hover:opacity-70 transition font-bold text-primary">manage</Link></li>
-            )}
+            <li><Link href="/about" className="nav-link">about</Link></li>
+            <li><Link href="/a-whim" className="nav-link">a whim</Link></li>
+            <li><Link href="/imagination" className="nav-link">imagination</Link></li>
+            <li><Link href="/contact" className="nav-link">contact</Link></li>
           </ul>
         </nav>
       </header>

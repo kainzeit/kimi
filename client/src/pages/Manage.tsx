@@ -6,18 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Trash2 } from "lucide-react";
-import { useLocation } from "wouter";
+
+const PAGE_KEYS = {
+  about: "about",
+  contact: "contact",
+};
 
 export default function Manage() {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"a-whim" | "imagination">("a-whim");
-  const [isCreating, setIsCreating] = useState(false);
-  const [formData, setFormData] = useState({ slug: "", title: "", content: "" });
+  const [activeTab, setActiveTab] = useState<"articles" | "pages">("articles");
+  const [activePageTab, setActivePageTab] = useState<"about" | "contact">("about");
+  const [isCreatingArticle, setIsCreatingArticle] = useState(false);
+  const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "" });
+  const [articleCategory, setArticleCategory] = useState<"a-whim" | "imagination">("a-whim");
 
-  const { data: articles, isLoading, refetch } = trpc.articles.list.useQuery({ category: activeTab });
-  const createMutation = trpc.articles.create.useMutation();
-  const deleteMutation = trpc.articles.delete.useMutation();
+  // Articles
+  const { data: articles, isLoading: articlesLoading, refetch: refetchArticles } = trpc.articles.list.useQuery({ category: articleCategory });
+  const createArticleMutation = trpc.articles.create.useMutation();
+  const deleteArticleMutation = trpc.articles.delete.useMutation();
+
+  // Pages
+  const { data: pageContent, isLoading: pageLoading, refetch: refetchPage } = trpc.pages.getContent.useQuery({ pageKey: PAGE_KEYS[activePageTab] });
+  const updatePageMutation = trpc.pages.updateContent.useMutation();
+  const [editingPageContent, setEditingPageContent] = useState("");
 
   if (!user || user.role !== "admin") {
     return (
@@ -29,134 +40,226 @@ export default function Manage() {
     );
   }
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreateArticle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.slug || !formData.title || !formData.content) return;
+    if (!articleForm.slug || !articleForm.title || !articleForm.content) return;
 
     try {
-      await createMutation.mutateAsync({
-        ...formData,
-        category: activeTab,
+      await createArticleMutation.mutateAsync({
+        ...articleForm,
+        category: articleCategory,
       });
-      setFormData({ slug: "", title: "", content: "" });
-      setIsCreating(false);
-      refetch();
+      setArticleForm({ slug: "", title: "", content: "" });
+      setIsCreatingArticle(false);
+      refetchArticles();
     } catch (error) {
       console.error("Failed to create article:", error);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteArticle = async (id: number) => {
     if (!window.confirm("are you sure?")) return;
     try {
-      await deleteMutation.mutateAsync({ id });
-      refetch();
+      await deleteArticleMutation.mutateAsync({ id });
+      refetchArticles();
     } catch (error) {
       console.error("Failed to delete article:", error);
+    }
+  };
+
+  const handleSavePage = async () => {
+    try {
+      await updatePageMutation.mutateAsync({
+        pageKey: PAGE_KEYS[activePageTab],
+        content: editingPageContent,
+      });
+      refetchPage();
+    } catch (error) {
+      console.error("Failed to save page:", error);
     }
   };
 
   return (
     <Layout>
       <div className="max-w-6xl mx-auto py-12">
-        <h1 className="text-2xl font-bold mb-8">manage articles</h1>
+        <h1 className="text-2xl font-bold mb-8">manage</h1>
 
-        {/* Tabs */}
+        {/* Main Tabs */}
         <div className="flex gap-4 mb-8 border-b border-border">
           <button
-            onClick={() => setActiveTab("a-whim")}
+            onClick={() => setActiveTab("articles")}
             className={`pb-2 px-4 font-semibold transition ${
-              activeTab === "a-whim"
+              activeTab === "articles"
                 ? "border-b-2 border-primary text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            a whim
+            articles
           </button>
           <button
-            onClick={() => setActiveTab("imagination")}
+            onClick={() => setActiveTab("pages")}
             className={`pb-2 px-4 font-semibold transition ${
-              activeTab === "imagination"
+              activeTab === "pages"
                 ? "border-b-2 border-primary text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            imagination
+            pages
           </button>
         </div>
 
-        {/* Create Form */}
-        {!isCreating ? (
-          <Button onClick={() => setIsCreating(true)} className="mb-8">
-            + new article
-          </Button>
-        ) : (
-          <form onSubmit={handleCreate} className="mb-8 p-6 border border-border rounded space-y-4">
-            <Input
-              placeholder="slug (e.g., my-first-post)"
-              value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              required
-            />
-            <Input
-              placeholder="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-            />
-            <Textarea
-              placeholder="content (markdown supported)"
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              required
-              rows={8}
-            />
-            <div className="flex gap-2">
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "save"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsCreating(false);
-                  setFormData({ slug: "", title: "", content: "" });
-                }}
+        {/* Articles Tab */}
+        {activeTab === "articles" && (
+          <div>
+            <div className="flex gap-4 mb-8 border-b border-border">
+              <button
+                onClick={() => setArticleCategory("a-whim")}
+                className={`pb-2 px-4 font-semibold transition ${
+                  articleCategory === "a-whim"
+                    ? "border-b-2 border-primary text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
-                cancel
-              </Button>
+                a whim
+              </button>
+              <button
+                onClick={() => setArticleCategory("imagination")}
+                className={`pb-2 px-4 font-semibold transition ${
+                  articleCategory === "imagination"
+                    ? "border-b-2 border-primary text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                imagination
+              </button>
             </div>
-          </form>
+
+            {!isCreatingArticle ? (
+              <Button onClick={() => setIsCreatingArticle(true)} className="mb-8">
+                + new article
+              </Button>
+            ) : (
+              <form onSubmit={handleCreateArticle} className="mb-8 p-6 border border-border rounded space-y-4">
+                <Input
+                  placeholder="slug (e.g., my-first-post)"
+                  value={articleForm.slug}
+                  onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
+                  required
+                />
+                <Input
+                  placeholder="title"
+                  value={articleForm.title}
+                  onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+                  required
+                />
+                <Textarea
+                  placeholder="content"
+                  value={articleForm.content}
+                  onChange={(e) => setArticleForm({ ...articleForm, content: e.target.value })}
+                  required
+                  rows={8}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={createArticleMutation.isPending}>
+                    {createArticleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "save"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsCreatingArticle(false);
+                      setArticleForm({ slug: "", title: "", content: "" });
+                    }}
+                  >
+                    cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {articlesLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin" />
+              </div>
+            ) : !articles || articles.length === 0 ? (
+              <p className="text-muted-foreground">no articles yet</p>
+            ) : (
+              <div className="space-y-4">
+                {articles.map((article) => (
+                  <div key={article.id} className="p-4 border border-border rounded flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{article.title}</h3>
+                      <p className="text-sm text-muted-foreground">/{articleCategory}/{article.slug}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(article.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteArticle(article.id)}
+                      disabled={deleteArticleMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
-        {/* Articles List */}
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin" />
-          </div>
-        ) : !articles || articles.length === 0 ? (
-          <p className="text-muted-foreground">no articles yet</p>
-        ) : (
-          <div className="space-y-4">
-            {articles.map((article) => (
-              <div key={article.id} className="p-4 border border-border rounded flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="font-semibold">{article.title}</h3>
-                  <p className="text-sm text-muted-foreground">/{activeTab}/{article.slug}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(article.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(article.id)}
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+        {/* Pages Tab */}
+        {activeTab === "pages" && (
+          <div>
+            <div className="flex gap-4 mb-8 border-b border-border">
+              <button
+                onClick={() => {
+                  setActivePageTab("about");
+                  setEditingPageContent(pageContent?.content || "");
+                }}
+                className={`pb-2 px-4 font-semibold transition ${
+                  activePageTab === "about"
+                    ? "border-b-2 border-primary text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                about
+              </button>
+              <button
+                onClick={() => {
+                  setActivePageTab("contact");
+                  setEditingPageContent(pageContent?.content || "");
+                }}
+                className={`pb-2 px-4 font-semibold transition ${
+                  activePageTab === "contact"
+                    ? "border-b-2 border-primary text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                contact
+              </button>
+            </div>
+
+            {pageLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin" />
               </div>
-            ))}
+            ) : (
+              <div className="space-y-4">
+                <Textarea
+                  value={editingPageContent}
+                  onChange={(e) => setEditingPageContent(e.target.value)}
+                  rows={12}
+                  placeholder="edit page content here..."
+                />
+                <div className="flex gap-2">
+                  <Button onClick={handleSavePage} disabled={updatePageMutation.isPending}>
+                    {updatePageMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "save"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

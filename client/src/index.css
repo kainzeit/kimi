@@ -136,7 +136,33 @@
   }
 }
 
+@keyframes wavy-underline {
+  0% {
+    background-position: 0 bottom;
+  }
+  100% {
+    background-position: 20px bottom;
+  }
+}
+
 @layer components {
+  .nav-link {
+    position: relative;
+    display: inline-block;
+    background: linear-gradient(
+      to right,
+      #fbbf24 0%,
+      #fbbf24 100%
+    ) no-repeat bottom;
+    background-size: 0 2px;
+    background-position: 0 bottom;
+    transition: background-size 0.3s ease;
+  }
+
+  .nav-link:hover {
+    background-size: 100% 2px;
+  }
+
   /**
    * Custom container utility that centers content and adds responsive padding.
    *

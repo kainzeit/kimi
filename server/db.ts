@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, articles, InsertArticle } from "../drizzle/schema";
+import { InsertUser, users, articles, InsertArticle, pageContent } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -173,6 +173,48 @@ export async function deleteArticle(id: number) {
     return result;
   } catch (error) {
     console.error("[Database] Failed to delete article:", error);
+    throw error;
+  }
+}
+
+export async function getPageContent(pageKey: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get page content: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(pageContent)
+      .where(eq(pageContent.pageKey, pageKey))
+      .limit(1);
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get page content:", error);
+    return undefined;
+  }
+}
+
+export async function updatePageContent(pageKey: string, content: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const existing = await getPageContent(pageKey);
+    if (existing) {
+      return db
+        .update(pageContent)
+        .set({ content, updatedAt: new Date() })
+        .where(eq(pageContent.pageKey, pageKey));
+    } else {
+      return db.insert(pageContent).values({ pageKey, content });
+    }
+  } catch (error) {
+    console.error("[Database] Failed to update page content:", error);
     throw error;
   }
 }

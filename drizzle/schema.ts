@@ -51,3 +51,13 @@ export const articlesRelations = relations(articles, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const pageContent = mysqlTable("pageContent", {
+  id: int("id").autoincrement().primaryKey(),
+  pageKey: varchar("pageKey", { length: 255 }).notNull().unique(),
+  content: longtext("content").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PageContent = typeof pageContent.$inferSelect;
+export type InsertPageContent = typeof pageContent.$inferInsert;
