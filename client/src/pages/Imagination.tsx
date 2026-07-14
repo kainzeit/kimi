@@ -67,7 +67,7 @@ export default function Imagination() {
               key={image.id}
               src={image.url}
               alt=""
-              style={{ width: IMG_SIZE, height: IMG_SIZE, objectFit: "cover", borderRadius: "4px" }}
+              style={{ height: IMG_SIZE, width: "auto", objectFit: "contain", borderRadius: "4px" }}
             />
           ))}
         </div>
