@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 
 const CONTENT_TOP = "169px";
-const IMG_SIZE = "189px"; // 5cm
+const IMG_SIZE = "227px";
 const IMG_GAP = "113px";
 
 /** Extract the first sentence/line of plain text from HTML or plain content */

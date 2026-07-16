@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 
 // Align content top with "home" nav item: 95px top + ~34px kimi. + 40px mb-10 = ~169px
 const CONTENT_TOP = "169px";
-const IMG_SIZE = "189px"; // 5cm
+const IMG_SIZE = "227px"; // 6cm
 const IMG_GAP = "113px";  // 3cm
 
 /** Extract the first sentence/line of plain text from HTML or plain content */

@@ -1,1 +1,0 @@
-ALTER TABLE `articles` MODIFY COLUMN `category` enum('a-whim','imagination','elsewhere') NOT NULL;

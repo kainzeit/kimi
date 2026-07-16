@@ -37,7 +37,7 @@ export const appRouter = router({
         slug: z.string(),
         title: z.string(),
         content: z.string(),
-        category: z.enum(["a-whim", "imagination", "elsewhere"]),
+        category: z.enum(["a-whim", "imagination"]),
         publishedAt: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -51,31 +51,32 @@ export const appRouter = router({
 
     update: publicProcedure
       .input(z.object({
-        slug: z.string(),
+        id: z.number(),
+        slug: z.string().optional(),
         title: z.string().optional(),
         content: z.string().optional(),
+        category: z.enum(["a-whim", "imagination"]).optional(),
+        publishedAt: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const article = await getArticleBySlug(input.slug);
-        if (!article) throw new Error("Article not found");
-        return updateArticle(article.id, input);
+        const { id, publishedAt, ...rest } = input;
+        return updateArticle(id, {
+          ...rest,
+          ...(publishedAt ? { publishedAt: new Date(publishedAt) } : {}),
+        });
       }),
 
     delete: publicProcedure
-      .input(z.object({ slug: z.string() }))
-      .mutation(async ({ input }) => {
-        const article = await getArticleBySlug(input.slug);
-        if (!article) throw new Error("Article not found");
-        return deleteArticle(article.id);
-      }),
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => deleteArticle(input.id)),
   }),
 
   pages: router({
-    get: publicProcedure
+    getContent: publicProcedure
       .input(z.object({ pageKey: z.string() }))
       .query(async ({ input }) => getPageContent(input.pageKey)),
 
-    update: publicProcedure
+    updateContent: publicProcedure
       .input(z.object({ pageKey: z.string(), content: z.string() }))
       .mutation(async ({ input }) => updatePageContent(input.pageKey, input.content)),
   }),
@@ -139,59 +140,6 @@ export const appRouter = router({
     setConfig: publicProcedure
       .input(z.object({ key: z.string(), value: z.string() }))
       .mutation(async ({ input }) => setSiteConfig(input.key, input.value)),
-
-    // Greeting management
-    getGreeting: publicProcedure
-      .query(async () => {
-        const prompt = (await getSiteConfig("greeting_prompt")) ?? "please say hi to enter";
-        const keywordStr = (await getSiteConfig("greeting_keyword")) ?? "hi";
-        const keywords = keywordStr.split(",").map(k => k.trim());
-        return { prompt, keywords };
-      }),
-
-    updateGreeting: publicProcedure
-      .input(z.object({ prompt: z.string(), keywords: z.array(z.string()) }))
-      .mutation(async ({ input }) => {
-        await setSiteConfig("greeting_prompt", input.prompt);
-        await setSiteConfig("greeting_keyword", input.keywords.join(", "));
-        return { success: true };
-      }),
-
-    // Page content management
-    getPages: publicProcedure
-      .query(async () => {
-        const pages = ["foyer", "knock", "imagination_intro", "elsewhere_intro"];
-        const results = [];
-        for (const pageKey of pages) {
-          const content = await getPageContent(pageKey);
-          results.push({ pageKey, content: content?.content || "" });
-        }
-        return results;
-      }),
-
-    updatePage: publicProcedure
-      .input(z.object({ pageKey: z.string(), content: z.string() }))
-      .mutation(async ({ input }) => updatePageContent(input.pageKey, input.content)),
-
-    // Article management
-    getArticles: publicProcedure
-      .query(async () => {
-        const categories = ["a-whim", "imagination", "elsewhere"];
-        const results = [];
-        for (const category of categories) {
-          const articles = await listArticles(category);
-          results.push(...articles.map((a: any) => ({ ...a, category })));
-        }
-        return results;
-      }),
-
-    updateArticle: publicProcedure
-      .input(z.object({ category: z.string(), slug: z.string(), title: z.string(), content: z.string() }))
-      .mutation(async ({ input }) => {
-        const article = await getArticleBySlug(input.slug);
-        if (!article) throw new Error("Article not found");
-        return updateArticle(article.id, { title: input.title, content: input.content });
-      }),
   }),
 
   // Article view tracking

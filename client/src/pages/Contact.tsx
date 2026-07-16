@@ -11,12 +11,12 @@ linkedin: https://cn.linkedin.com/in/%E6%B8%85%E8%8F%AF-%E8%AD%9A-b73110278
 github: https://github.com/idbetterrun`;
 
 const CONTENT_TOP = "169px";
-const IMG_SIZE = "189px"; // 5cm
+const IMG_SIZE = "227px";
 const IMG_GAP = "113px";
 
 export default function Contact() {
-  const { data: pageContent, isLoading } = trpc.pages.get.useQuery({ pageKey: "knock" });
-  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "knock" });
+  const { data: pageContent, isLoading } = trpc.pages.getContent.useQuery({ pageKey: "contact" });
+  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "contact" });
   const rawContent = pageContent?.content || DEFAULT_CONTENT;
   const isHtml = rawContent.trim().startsWith("<");
 
@@ -35,7 +35,7 @@ export default function Contact() {
           />
         ) : (
           <div className="max-w-xl text-base leading-loose tracking-wide space-y-5">
-            {rawContent.split("\n").map((line: string, idx: number) => {
+            {rawContent.split("\n").map((line, idx) => {
               if (!line.trim()) return null;
               if (line.includes("http")) {
                 const colonIdx = line.indexOf(": ");

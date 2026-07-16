@@ -16,11 +16,11 @@ export default function Home() {
       ) : (
         <div className="flex flex-wrap gap-4">
           {(images as { id: number; url: string }[]).map((image) => (
-            <div key={image.id} style={{ width: "auto", height: "189px", flexShrink: 0 }}>
+            <div key={image.id} style={{ width: "190px", height: "190px", flexShrink: 0 }}>
               <img
                 src={image.url}
                 alt=""
-                style={{ height: "189px", width: "auto", objectFit: "contain" }}
+                style={{ width: "190px", height: "190px", objectFit: "cover" }}
                 className="rounded"
               />
             </div>
