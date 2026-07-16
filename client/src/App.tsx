@@ -5,10 +5,11 @@ import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import About from "./pages/About";
+import Foyer from "./pages/Foyer";
 import AWhim from "./pages/AWhim";
 import Imagination from "./pages/Imagination";
-import Contact from "./pages/Contact";
+import Elsewhere from "./pages/Elsewhere";
+import Knock from "./pages/Knock";
 import Post from "./pages/Post";
 import Manage from "./pages/Manage";
 import Greeting from "./pages/Greeting";
@@ -31,10 +32,11 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
   const isPreview = useIsPreviewMode();
 
   const navItems = [
-    { href: "/about", label: "about" },
+    { href: "/foyer", label: "foyer" },
     { href: "/a-whim", label: "a whim" },
     { href: "/imagination", label: "imagination" },
-    { href: "/contact", label: "contact" },
+    { href: "/elsewhere", label: "elsewhere" },
+    { href: "/knock", label: "knock" },
   ];
 
   const isActive = (href: string) => {
@@ -130,12 +132,14 @@ function AppRoutes({ theme, toggleTheme }: { theme: "light" | "dark"; toggleThem
     <MainLayout theme={theme} toggleTheme={toggleTheme}>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/about" component={About} />
+        <Route path="/foyer" component={Foyer} />
         <Route path="/a-whim" component={AWhim} />
         <Route path="/a-whim/:slug" component={Post} />
         <Route path="/imagination/:slug" component={Post} />
         <Route path="/imagination" component={Imagination} />
-        <Route path="/contact" component={Contact} />
+        <Route path="/elsewhere/:slug" component={Post} />
+        <Route path="/elsewhere" component={Elsewhere} />
+        <Route path="/knock" component={Knock} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

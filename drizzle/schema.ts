@@ -31,7 +31,7 @@ export const articles = mysqlTable("articles", {
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   title: varchar("title", { length: 255 }).notNull(),
   content: longtext("content").notNull(),
-  category: mysqlEnum("category", ["a-whim", "imagination"]).notNull(),
+  category: mysqlEnum("category", ["a-whim", "imagination", "elsewhere"]).notNull(),
   authorId: int("authorId").notNull(),
   publishedAt: timestamp("publishedAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

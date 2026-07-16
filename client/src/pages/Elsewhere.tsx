@@ -1,11 +1,10 @@
-import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { Link } from "wouter";
 
-// Align content top with "home" nav item: 95px top + ~34px kimi. + 40px mb-10 = ~169px
 const CONTENT_TOP = "169px";
 const IMG_SIZE = "189px"; // 5cm
-const IMG_GAP = "113px";  // 3cm
+const IMG_GAP = "113px";
 
 /** Extract the first sentence/line of plain text from HTML or plain content */
 function getPreview(content: string): string {
@@ -21,9 +20,9 @@ function getPreview(content: string): string {
   return text.slice(0, 100).trim() + (text.length > 100 ? "…" : "");
 }
 
-export default function AWhim() {
-  const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "a-whim" });
-  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "a-whim" });
+export default function Elsewhere() {
+  const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "elsewhere" });
+  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "elsewhere" });
 
   return (
     <div style={{ paddingTop: CONTENT_TOP, paddingLeft: "64px", paddingRight: "48px", paddingBottom: "48px", display: "flex", alignItems: "flex-start", gap: IMG_GAP }}>
@@ -39,7 +38,7 @@ export default function AWhim() {
           <div className="space-y-8">
             {articles.map((article) => (
               <div key={article.id}>
-                <Link href={`/a-whim/${article.slug}`}>
+                <Link href={`/elsewhere/${article.slug}`}>
                   <h2 className="text-base font-semibold nav-link inline-block mb-1">{article.title}</h2>
                 </Link>
                 <p className="text-xs text-muted-foreground tracking-wide mt-1">
@@ -60,7 +59,7 @@ export default function AWhim() {
         )}
       </div>
 
-      {/* Images: right of content, 6cm×6cm */}
+      {/* Images: right of content, 5cm height with proportional width */}
       {(images as any[]).length > 0 && (
         <div className="flex flex-col gap-4 shrink-0">
           {(images as any[]).map((image) => (
