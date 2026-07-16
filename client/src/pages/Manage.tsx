@@ -128,7 +128,7 @@ function RichEditor({
 }
 
 type Section = "articles" | "pages" | "images" | "dashboard" | "greeting";
-type PageKey = "about" | "contact" | "imagination_intro";
+type PageKey = "foyer" | "knock" | "imagination_intro";
 type Category = "a-whim" | "imagination";
 
 // ---- Dashboard Section ----
@@ -299,7 +299,7 @@ function GreetingSection() {
 
 export default function Manage() {
   const [section, setSection] = useState<Section>("pages");
-  const [activePageKey, setActivePageKey] = useState<PageKey>("about");
+  const [activePageKey, setActivePageKey] = useState<PageKey>("foyer");
   const [articleCategory, setArticleCategory] = useState<Category>("a-whim");
   const [isCreating, setIsCreating] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
@@ -474,8 +474,8 @@ export default function Manage() {
         {section === "pages" && (
           <div>
             <div className="flex gap-6 mb-8">
-              {subBtn<PageKey>("about", activePageKey, "about", setActivePageKey)}
-              {subBtn<PageKey>("contact", activePageKey, "contact", setActivePageKey)}
+              {subBtn<PageKey>("foyer", activePageKey, "foyer", setActivePageKey)}
+              {subBtn<PageKey>("knock", activePageKey, "knock", setActivePageKey)}
             </div>
             {pageLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -630,10 +630,11 @@ export default function Manage() {
           <div>
             <div className="flex gap-6 mb-8">
               {subBtn<string>("home", imagesPageKey, "home", setImagesPageKey)}
-              {subBtn<string>("about", imagesPageKey, "about", setImagesPageKey)}
+              {subBtn<string>("foyer", imagesPageKey, "foyer", setImagesPageKey)}
               {subBtn<string>("a-whim", imagesPageKey, "a whim", setImagesPageKey)}
               {subBtn<string>("imagination", imagesPageKey, "imagination", setImagesPageKey)}
-              {subBtn<string>("contact", imagesPageKey, "contact", setImagesPageKey)}
+              {subBtn<string>("elsewhere", imagesPageKey, "elsewhere", setImagesPageKey)}
+              {subBtn<string>("knock", imagesPageKey, "knock", setImagesPageKey)}
             </div>
 
             <label className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition tracking-wide cursor-pointer mb-8">
