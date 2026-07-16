@@ -31,10 +31,11 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
   const isPreview = useIsPreviewMode();
 
   const navItems = [
-    { href: "/about", label: "about" },
+    { href: "/foyer", label: "foyer" },
     { href: "/a-whim", label: "a whim" },
     { href: "/imagination", label: "imagination" },
-    { href: "/contact", label: "contact" },
+    { href: "/elsewhere", label: "elsewhere" },
+    { href: "/knock", label: "knock" },
   ];
 
   const isActive = (href: string) => {
@@ -130,12 +131,14 @@ function AppRoutes({ theme, toggleTheme }: { theme: "light" | "dark"; toggleThem
     <MainLayout theme={theme} toggleTheme={toggleTheme}>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/about" component={About} />
+        <Route path="/foyer" component={About} />
         <Route path="/a-whim" component={AWhim} />
         <Route path="/a-whim/:slug" component={Post} />
         <Route path="/imagination/:slug" component={Post} />
         <Route path="/imagination" component={Imagination} />
-        <Route path="/contact" component={Contact} />
+        <Route path="/elsewhere/:slug" component={Post} />
+        <Route path="/elsewhere" component={Imagination} />
+        <Route path="/knock" component={Contact} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

@@ -50,6 +50,13 @@
       "when": 1783973887936,
       "tag": "0006_brown_zombie",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1784174822189,
+      "tag": "0007_stale_tattoo",
+      "breakpoints": true
     }
   ]
 }

@@ -15,13 +15,13 @@ thanks for making it this far :)`;
 // We use 169px so content top aligns with "home" nav item
 const CONTENT_TOP = "169px";
 // 6cm ≈ 227px
-const IMG_SIZE = "227px";
+const IMG_SIZE = "189px"; // 5cm
 // 3cm ≈ 113px gap between text right edge and image
 const IMG_GAP = "113px";
 
 export default function About() {
-  const { data: pageContent, isLoading } = trpc.pages.getContent.useQuery({ pageKey: "about" });
-  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "about" });
+  const { data: pageContent, isLoading } = trpc.pages.get.useQuery({ pageKey: "foyer" });
+  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "foyer" });
 
   const rawContent = pageContent?.content || DEFAULT_CONTENT;
   const isHtml = rawContent.trim().startsWith("<");
@@ -41,7 +41,7 @@ export default function About() {
           />
         ) : (
           <div className="max-w-xl text-base leading-loose tracking-wide space-y-5">
-            {rawContent.split("\n").map((line, idx) =>
+            {rawContent.split("\n").map((line: string, idx: number) =>
               line.trim() ? (
                 <p key={idx}>{line}</p>
               ) : null
