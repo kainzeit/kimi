@@ -1,4 +1,4 @@
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, articles, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -341,5 +341,166 @@ export async function setSiteConfig(key: string, value: string) {
   } catch (error) {
     console.error("[Database] Failed to set site config:", error);
     throw error;
+  }
+}
+
+
+// Hide/unhide articles
+export async function hideArticle(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(articles)
+      .set({ isHidden: 1 as any })
+      .where(eq(articles.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to hide article:", error);
+    throw error;
+  }
+}
+
+export async function unhideArticle(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(articles)
+      .set({ isHidden: 0 as any })
+      .where(eq(articles.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to unhide article:", error);
+    throw error;
+  }
+}
+
+// Soft delete articles (set deletedAt timestamp)
+export async function softDeleteArticle(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(articles)
+      .set({ deletedAt: new Date() })
+      .where(eq(articles.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to soft delete article:", error);
+    throw error;
+  }
+}
+
+// Restore deleted article
+export async function restoreArticle(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(articles)
+      .set({ deletedAt: null })
+      .where(eq(articles.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to restore article:", error);
+    throw error;
+  }
+}
+
+// List deleted articles (recycle bin)
+export async function listDeletedArticles(category?: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot list deleted articles: database not available");
+    return [];
+  }
+
+  try {
+    let query = db.select().from(articles).where(isNotNull(articles.deletedAt));
+    if (category) {
+      query = query.where(eq(articles.category, category as any));
+    }
+    const result = await query.orderBy(desc(articles.deletedAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to list deleted articles:", error);
+    return [];
+  }
+}
+
+// Hide/unhide images
+export async function hideImage(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(images)
+      .set({ isHidden: 1 as any })
+      .where(eq(images.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to hide image:", error);
+    throw error;
+  }
+}
+
+export async function unhideImage(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(images)
+      .set({ isHidden: 0 as any })
+      .where(eq(images.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to unhide image:", error);
+    throw error;
+  }
+}
+
+// Soft delete images
+export async function softDeleteImage(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(images)
+      .set({ deletedAt: new Date() })
+      .where(eq(images.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to soft delete image:", error);
+    throw error;
+  }
+}
+
+// Restore deleted image
+export async function restoreImage(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(images)
+      .set({ deletedAt: null })
+      .where(eq(images.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to restore image:", error);
+    throw error;
+  }
+}
+
+// List deleted images (recycle bin)
+export async function listDeletedImages(pageKey?: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot list deleted images: database not available");
+    return [];
+  }
+
+  try {
+    let query = db.select().from(images).where(isNotNull(images.deletedAt));
+    if (pageKey) {
+      query = query.where(eq(images.pageKey, pageKey));
+    }
+    const result = await query.orderBy(desc(images.deletedAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to list deleted images:", error);
+    return [];
   }
 }
