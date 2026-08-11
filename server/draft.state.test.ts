@@ -52,4 +52,33 @@ describe("Draft and Published State Transitions and Public Query Filtering", () 
       await caller.images.setDraft({ id: img.id, isDraft: Boolean(originalDraft) });
     }
   });
+
+  it("moves an article into recycle and restores it back to the Manage article list", async () => {
+    const caller = appRouter.createCaller(createContext());
+    const articles = await caller.articles.list({ category: "a-whim", includeHidden: true });
+    const article = articles[0];
+
+    if (!article) {
+      expect(articles).toEqual([]);
+      return;
+    }
+
+    try {
+      await caller.articles.softDelete({ id: article.id });
+      const deleted = await caller.articles.listDeleted({});
+      expect(deleted.some((item: any) => item.id === article.id && item.category === "a-whim")).toBe(true);
+
+      await caller.articles.restore({ id: article.id });
+      const deletedAfterRestore = await caller.articles.listDeleted({});
+      const restoredArticles = await caller.articles.list({ category: "a-whim", includeHidden: true });
+
+      expect(deletedAfterRestore.some((item: any) => item.id === article.id)).toBe(false);
+      expect(restoredArticles.some((item: any) => item.id === article.id)).toBe(true);
+    } finally {
+      const stillDeleted = await caller.articles.listDeleted({});
+      if (stillDeleted.some((item: any) => item.id === article.id)) {
+        await caller.articles.restore({ id: article.id });
+      }
+    }
+  });
 });

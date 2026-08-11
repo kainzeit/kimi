@@ -560,12 +560,65 @@ function GreetingSection() {
   );
 }
 
+function ArticlePreview({
+  title,
+  content,
+  publishedAt,
+  category,
+  onClose,
+}: {
+  title: string;
+  content: string;
+  publishedAt: string;
+  category: Category;
+  onClose: () => void;
+}) {
+  const isHtml = content.trim().startsWith("<");
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background text-foreground">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-5 py-3 backdrop-blur sm:px-10">
+        <p className="text-xs tracking-wide text-muted-foreground">front-end preview · {category}</p>
+        <Button type="button" variant="outline" size="sm" className="text-xs" onClick={onClose}>
+          <X className="mr-1 h-3 w-3" /> close preview
+        </Button>
+      </div>
+      <div className="public-post-layout mx-auto max-w-4xl">
+        <p className="mb-8 inline-block text-xs tracking-wide text-muted-foreground">← {category}</p>
+        <article className="max-w-xl">
+          <p className="mb-4 text-xs tracking-wide text-muted-foreground">
+            {publishedAt
+              ? new Date(`${publishedAt}T12:00:00`).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              : "date preview"}
+          </p>
+          <h1 className="mb-8 text-2xl font-bold">{title || "untitled article"}</h1>
+          {isHtml ? (
+            <div className="prose-content text-base leading-loose tracking-wide" dangerouslySetInnerHTML={{ __html: content }} />
+          ) : (
+            <div className="space-y-5 text-base leading-loose tracking-wide">
+              {(content || "your article content will appear here.").split("\n").map((paragraph, index) =>
+                paragraph.trim() ? <p key={index}>{paragraph}</p> : null
+              )}
+            </div>
+          )}
+        </article>
+      </div>
+    </div>
+  );
+}
+
 export default function Manage() {
   const [section, setSection] = useState<Section>("pages");
   const [activePageKey, setActivePageKey] = useState<PageKey>("foyer");
   const [articleCategory, setArticleCategory] = useState<Category>("a-whim");
+  const [showArticleRecycle, setShowArticleRecycle] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
+  const [isPreviewingArticle, setIsPreviewingArticle] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "", publishedAt: today });
   const [articleRichContent, setArticleRichContent] = useState("");
@@ -835,11 +888,62 @@ export default function Manage() {
         {section === "articles" && (
           <div>
             <div className="flex gap-6 mb-8">
-              {subBtn<Category>("a-whim", articleCategory, "a whim", setArticleCategory)}
-              {subBtn<Category>("imagination", articleCategory, "imagination", setArticleCategory)}
-              {subBtn<Category>("elsewhere", articleCategory, "elsewhere", setArticleCategory)}
+              {subBtn<Category>("a-whim", articleCategory, "a whim", (value) => {
+                setArticleCategory(value);
+                setShowArticleRecycle(false);
+              })}
+              {subBtn<Category>("imagination", articleCategory, "imagination", (value) => {
+                setArticleCategory(value);
+                setShowArticleRecycle(false);
+              })}
+              {subBtn<Category>("elsewhere", articleCategory, "elsewhere", (value) => {
+                setArticleCategory(value);
+                setShowArticleRecycle(false);
+              })}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowArticleRecycle(true);
+                  setIsCreating(false);
+                }}
+                className={`text-xs tracking-wide transition ${
+                  showArticleRecycle ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                recycle
+              </button>
             </div>
 
+            {showArticleRecycle ? (
+              <div className="max-w-2xl">
+                <div className="mb-6">
+                  <h2 className="text-sm font-semibold tracking-wide">article recycle bin</h2>
+                  <p className="mt-1 text-xs tracking-wide text-muted-foreground">
+                    deleted entries from a whim, imagination, and elsewhere stay here until restored.
+                  </p>
+                </div>
+                {(deletedArticles as any[]).length === 0 ? (
+                  <p className="text-sm tracking-wide text-muted-foreground">recycle is empty.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(deletedArticles as any[]).map((article: any) => (
+                      <div key={article.id} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                        <div className="min-w-0 pr-4">
+                          <p className="truncate text-sm font-semibold">{article.title}</p>
+                          <p className="mt-0.5 text-xs tracking-wide text-muted-foreground">
+                            {article.category} · /{article.slug} · deleted {article.deletedAt ? new Date(article.deletedAt).toLocaleDateString("en-US") : "—"}
+                          </p>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" className="shrink-0 text-xs" onClick={() => handleRestoreArticle(article.id)}>
+                          <RotateCcw className="mr-1 h-3 w-3" /> restore
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
             {!isCreating ? (
               <button
                 onClick={() => {
@@ -905,6 +1009,15 @@ export default function Manage() {
                     onClick={() => handleSaveArticle(false)}
                   >
                     {editingArticleId ? "update & publish" : "publish"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setIsPreviewingArticle(true)}
+                  >
+                    preview
                   </Button>
                   <Button
                     type="button"
@@ -988,6 +1101,8 @@ export default function Manage() {
                   </div>
                 ))}
               </div>
+            )}
+              </>
             )}
           </div>
         )}
@@ -1137,6 +1252,16 @@ export default function Manage() {
 
         {/* GREETING CONFIG */}
         {section === "greeting" && <GreetingSection />}
+
+        {isPreviewingArticle && (
+          <ArticlePreview
+            title={articleForm.title}
+            content={articleRichContent || articleForm.content}
+            publishedAt={articleForm.publishedAt}
+            category={articleCategory}
+            onClose={() => setIsPreviewingArticle(false)}
+          />
+        )}
       </div>
     </div>
   );

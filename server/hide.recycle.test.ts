@@ -30,4 +30,20 @@ describe("hide and recycle-bin route contracts", () => {
     expect(Array.isArray(deletedArticles)).toBe(true);
     expect(Array.isArray(deletedImages)).toBe(true);
   });
+
+  it("returns the article metadata required by the Article recycle view and exposes restoration", async () => {
+    const caller = appRouter.createCaller(createContext());
+    const deletedArticles = await caller.articles.listDeleted({});
+
+    expect(typeof caller.articles.restore).toBe("function");
+    expect(
+      deletedArticles.every((article: any) =>
+        article.deletedAt &&
+        typeof article.id === "number" &&
+        typeof article.title === "string" &&
+        typeof article.slug === "string" &&
+        ["a-whim", "imagination", "elsewhere"].includes(article.category)
+      )
+    ).toBe(true);
+  });
 });

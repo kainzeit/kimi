@@ -128,3 +128,8 @@
 - [x] Implement true resizable image handling for uploaded and online images in RichEditor
 - [x] Implement functional FontSize extension in Tiptap so font size dropdown updates selection and persists in HTML
 - [x] Add font-size persistence and selection round-trip test in `server/richtext.test.ts`
+- [x] Add a front-end-faithful preview button and preview panel for unsaved article edits in Manage
+- [x] Add an Article recycle-bin section that lists deleted A Whim, Imagination, and Elsewhere entries
+- [x] Add restore actions and regression coverage for the Article recycle-bin workflow
+- [x] Add focused Vitest coverage for article recycle-bin metadata and restore behavior
+- [x] Add a safe soft-delete and restore state-transition test for Article recycle entries
