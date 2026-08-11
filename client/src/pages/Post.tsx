@@ -3,10 +3,20 @@ import { trpc } from "@/lib/trpc";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+type ReadingDensity = "compact" | "comfortable";
+const READING_DENSITY_STORAGE_KEY = "kimi-reading-density";
+
 export default function Post() {
   const params = useParams();
   const [location] = useLocation();
   const slug = params.slug as string;
+  const [readingDensity, setReadingDensity] = useState<ReadingDensity>(() => {
+    try {
+      return sessionStorage.getItem(READING_DENSITY_STORAGE_KEY) === "compact" ? "compact" : "comfortable";
+    } catch {
+      return "comfortable";
+    }
+  });
 
   // Determine category from URL path
   const isImagination = location.startsWith("/imagination/");
@@ -33,6 +43,14 @@ export default function Post() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(READING_DENSITY_STORAGE_KEY, readingDensity);
+    } catch {
+      // Reading remains functional when session storage is unavailable.
+    }
+  }, [readingDensity]);
+
   // Find current article index and prev/next
   const currentIndex = allArticles.findIndex((a: any) => a.slug === slug);
   const prevArticle = currentIndex > 0 ? allArticles[currentIndex - 1] : null;
@@ -57,7 +75,7 @@ export default function Post() {
         <p className="text-sm text-muted-foreground">article not found.</p>
       ) : (
         <>
-          <article className="max-w-xl">
+          <article className={`max-w-xl article-reading-density article-density-${readingDensity}`}>
             <p className="text-xs text-muted-foreground mb-4 tracking-wide">
               {new Date(article.publishedAt).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -65,14 +83,34 @@ export default function Post() {
                 day: "numeric",
               })}
             </p>
-            <h1 className="text-2xl font-bold mb-8">{article.title}</h1>
+            <div className="article-title-row">
+              <h1 className="text-2xl font-bold">{article.title}</h1>
+              <div className="reading-density-toggle" role="group" aria-label="Reading density">
+                <button
+                  type="button"
+                  aria-pressed={readingDensity === "compact"}
+                  className={readingDensity === "compact" ? "is-active" : ""}
+                  onClick={() => setReadingDensity("compact")}
+                >
+                  compact
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={readingDensity === "comfortable"}
+                  className={readingDensity === "comfortable" ? "is-active" : ""}
+                  onClick={() => setReadingDensity("comfortable")}
+                >
+                  comfortable
+                </button>
+              </div>
+            </div>
             {isHtml ? (
               <div
-                className="prose-content text-base leading-relaxed tracking-wide"
+                className="prose-content article-reading-content text-base tracking-wide"
                 dangerouslySetInnerHTML={{ __html: article.content }}
               />
             ) : (
-              <div className="text-base leading-relaxed tracking-wide space-y-5">
+              <div className="article-reading-content text-base tracking-wide">
                 {article.content.split("\n").map((paragraph: string, idx: number) =>
                   paragraph.trim() ? (
                     <p key={idx}>{paragraph}</p>

@@ -148,3 +148,7 @@
 - [x] Fix public pages so saved Manage image dimensions are applied without an overriding layout style
 - [x] Reduce public article continuous-text line height while preserving paragraph spacing
 - [x] Verify saved image dimensions and article typography on desktop and mobile public pages
+- [x] Add compact and comfortable reading-density state with session persistence on article pages
+- [x] Add an accessible compact/comfortable density toggle to the article view
+- [x] Apply distinct line-height and paragraph-spacing rules for each density without affecting images or article navigation
+- [x] Verify the density toggle, remembered setting, and 375px article layout

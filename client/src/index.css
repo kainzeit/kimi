@@ -456,6 +456,83 @@
   }
 }
 
+/* Article reading-density modes. Paragraph spacing stays separate from line height. */
+.article-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.article-title-row h1 {
+  min-width: 0;
+}
+
+.reading-density-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.35rem;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+.reading-density-toggle button {
+  padding: 0 0 0.15rem;
+  transition: color 160ms ease-out, box-shadow 160ms ease-out;
+}
+
+.reading-density-toggle button:hover {
+  color: var(--foreground);
+}
+
+.reading-density-toggle button.is-active {
+  color: var(--foreground);
+  box-shadow: inset 0 -1px 0 currentColor;
+}
+
+.article-reading-content {
+  line-height: 1.625;
+}
+
+.article-reading-content > p {
+  margin-bottom: 1.25rem;
+}
+
+.article-density-comfortable .article-reading-content,
+.article-density-comfortable .article-reading-content p,
+.article-density-comfortable .article-reading-content li {
+  line-height: 1.625;
+}
+
+.article-density-comfortable .article-reading-content > p {
+  margin-bottom: 1.25rem;
+}
+
+.article-density-compact .article-reading-content,
+.article-density-compact .article-reading-content p,
+.article-density-compact .article-reading-content li {
+  line-height: 1.45;
+}
+
+.article-density-compact .article-reading-content > p {
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 767px) {
+  .article-title-row {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .reading-density-toggle {
+    padding-top: 0;
+  }
+}
+
 /* Mobile public-site navigation: compact header plus an optional menu panel. */
 .site-sidebar-header {
   display: block;
