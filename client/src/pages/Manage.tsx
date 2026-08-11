@@ -320,6 +320,7 @@ export default function Manage() {
   const unhideArticleMutation = trpc.articles.unhide.useMutation();
   const softDeleteArticleMutation = trpc.articles.softDelete.useMutation();
   const restoreArticleMutation = trpc.articles.restore.useMutation();
+  const setArticleDraftMutation = trpc.articles.setDraft.useMutation();
   const { data: deletedArticles = [], refetch: refetchDeletedArticles } =
     trpc.articles.listDeleted.useQuery({});
 
@@ -337,6 +338,7 @@ export default function Manage() {
   const unhideImageMutation = trpc.images.unhide.useMutation();
   const softDeleteImageMutation = trpc.images.softDelete.useMutation();
   const restoreImageMutation = trpc.images.restore.useMutation();
+  const setImageDraftMutation = trpc.images.setDraft.useMutation();
   const { data: deletedImages = [], refetch: refetchDeletedImages } =
     trpc.images.listDeleted.useQuery({});
 
@@ -686,15 +688,12 @@ export default function Manage() {
                     <div className="flex gap-2 ml-4 mt-0.5 items-center">
                       <button
                         onClick={async () => {
-                          const setDraftMutation = trpc.articles.setDraft.useMutation();
-                          // we can use a helper or direct trpc client call in component
-                        }}
-                      />
-                      <button
-                        onClick={async () => {
-                          // toggle draft status
-                          const nextDraft = !article.isDraft;
-                          // direct invoke via trpc utils or mutation
+                          try {
+                            await setArticleDraftMutation.mutateAsync({ id: article.id, isDraft: !article.isDraft });
+                            await refetchArticles();
+                          } catch (err) {
+                            console.error(err);
+                          }
                         }}
                         className="text-xs px-2 py-0.5 border rounded text-muted-foreground hover:text-foreground transition"
                         title={article.isDraft ? "Publish now" : "Convert to draft"}
@@ -771,7 +770,24 @@ export default function Manage() {
                       alt=""
                       className="w-full h-28 object-cover rounded"
                     />
+                    {image.isDraft && (
+                      <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 bg-background/90 text-muted-foreground rounded tracking-wide">draft</span>
+                    )}
                     <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await setImageDraftMutation.mutateAsync({ id: image.id, isDraft: !image.isDraft });
+                            await refetchImages();
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        title={image.isDraft ? "Publish image" : "Make draft"}
+                        className="p-1 bg-background/80 rounded hover:bg-muted text-xs px-1.5 font-mono"
+                      >
+                        {image.isDraft ? "pub" : "draft"}
+                      </button>
                       <button
                         onClick={() => handleToggleImageHidden(image)}
                         title={image.isHidden ? "Show on site" : "Hide from site"}

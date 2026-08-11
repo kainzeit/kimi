@@ -30,9 +30,12 @@
 
 - [x] Add isolated Vitest coverage for article hide, unhide, soft-delete, and restore mutations
 - [x] Add isolated Vitest coverage for image hide, unhide, soft-delete, and restore mutations
-- [ ] Add `isPublished` or `status` (draft/published) field to `articles` and `images` tables in `drizzle/schema.ts`
-- [ ] Implement database migration and update `server/db.ts` to support draft/publish toggle and filtering
-- [ ] Update tRPC routers in `server/routers.ts` to accept and expose draft/publish status updates
-- [ ] Update `Manage.tsx` article and image editors with "Save as Draft" vs "Publish" buttons / status badges
-- [ ] Filter out draft items from public article and image listings by default
-- [ ] Add Vitest tests for draft/publish mutation and listing contracts
+- [x] Add `isPublished` or `status` (draft/published) field to `articles` and `images` tables in `drizzle/schema.ts`
+- [x] Implement database migration and update `server/db.ts` to support draft/publish toggle and filtering
+- [x] Update tRPC routers in `server/routers.ts` to accept and expose draft/publish status updates
+- [x] Update `Manage.tsx` article and image editors with "Save as Draft" vs "Publish" buttons / status badges
+- [x] Filter out draft items from public article and image listings by default
+- [x] Add Vitest tests for draft/publish mutation and listing contracts
+- [x] Implement real article draft/publish toggle button in `Manage.tsx` list
+- [x] Add draft/publish status toggle and badge for image entries in `Manage.tsx`
+- [x] Add dedicated Vitest tests covering article/image draft mutations and public filtering
