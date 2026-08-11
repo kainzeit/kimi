@@ -6,7 +6,7 @@ export default function Home() {
 
   return (
     // pt matches sidebar 'home' nav item position (~169px)
-    <div style={{ paddingTop: "169px", paddingLeft: "64px", paddingRight: "48px", paddingBottom: "48px" }} className="h-full">
+    <div className="public-home-layout">
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />

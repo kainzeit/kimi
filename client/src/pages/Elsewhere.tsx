@@ -25,9 +25,9 @@ export default function Elsewhere() {
   const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "elsewhere" });
 
   return (
-    <div style={{ paddingTop: CONTENT_TOP, paddingLeft: "64px", paddingRight: "48px", paddingBottom: "48px", display: "flex", alignItems: "flex-start", gap: IMG_GAP }}>
+    <div className="public-content-layout">
       {/* Article list */}
-      <div className="flex-1 min-w-0">
+      <div className="public-text-column flex-1 min-w-0">
         {isLoading ? (
           <div className="flex py-12">
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -61,7 +61,7 @@ export default function Elsewhere() {
 
       {/* Images: right of content, 5cm height with proportional width */}
       {(images as any[]).length > 0 && (
-        <div className="flex flex-col gap-4 shrink-0">
+        <div className="public-image-column flex flex-col gap-4 shrink-0">
           {(images as any[]).map((image) => (
             <img
               key={image.id}

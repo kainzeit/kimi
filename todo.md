@@ -20,3 +20,13 @@
 - [x] Fixed incrementArticleView to use SQL raw increment (sql`views + 1`)
 - [x] Dashboard in Manage page (access logs table + article view counts)
 - [x] Greeting config editor in Manage (edit prompt text and keyword)
+- [x] Add hide/unhide controls for article entries in Manage
+- [x] Add hide/unhide controls for image entries in Manage
+- [x] Add recycle bin tab with restore actions for deleted articles and images
+- [x] Filter hidden/deleted content from public article and image listings
+- [x] Add vitest coverage for hide, soft-delete, and restore routes
+- [ ] Make public layout responsive on mobile without changing the desktop composition
+- [ ] Verify public pages and Manage flows at desktop and mobile breakpoints
+
+- [ ] Add isolated Vitest coverage for article hide, unhide, soft-delete, and restore mutations
+- [ ] Add isolated Vitest coverage for image hide, unhide, soft-delete, and restore mutations

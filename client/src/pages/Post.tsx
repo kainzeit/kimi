@@ -41,7 +41,7 @@ export default function Post() {
   const isHtml = article?.content?.trim().startsWith("<");
 
   return (
-    <div className="pt-10 pl-16 pr-12 pb-12">
+    <div className="public-post-layout">
       <Link
         href={backHref}
         className="text-xs text-muted-foreground hover:text-foreground transition tracking-wide inline-block mb-8"

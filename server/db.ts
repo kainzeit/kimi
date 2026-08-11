@@ -1,4 +1,4 @@
-import { eq, desc, sql, isNotNull } from "drizzle-orm";
+import { and, eq, desc, sql, isNull, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, articles, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -89,7 +89,10 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function listArticles(category: string) {
+export async function listArticles(
+  category: string,
+  options: { includeHidden?: boolean; includeDeleted?: boolean } = {},
+) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot list articles: database not available");
@@ -97,10 +100,13 @@ export async function listArticles(category: string) {
   }
 
   try {
+    const conditions = [eq(articles.category, category as any)];
+    if (!options.includeHidden) conditions.push(eq(articles.isHidden, 0 as any));
+    if (!options.includeDeleted) conditions.push(isNull(articles.deletedAt));
     const result = await db
       .select()
       .from(articles)
-      .where(eq(articles.category, category as any))
+      .where(and(...conditions))
       .orderBy(desc(articles.publishedAt));
     return result;
   } catch (error) {
@@ -120,7 +126,7 @@ export async function getArticleBySlug(slug: string) {
     const result = await db
       .select()
       .from(articles)
-      .where(eq(articles.slug, slug))
+      .where(and(eq(articles.slug, slug), eq(articles.isHidden, 0 as any), isNull(articles.deletedAt)))
       .limit(1);
     return result.length > 0 ? result[0] : undefined;
   } catch (error) {
@@ -219,7 +225,10 @@ export async function updatePageContent(pageKey: string, content: string) {
   }
 }
 
-export async function listImages(pageKey?: string) {
+export async function listImages(
+  pageKey?: string,
+  options: { includeHidden?: boolean; includeDeleted?: boolean } = {},
+) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot list images: database not available");
@@ -227,11 +236,16 @@ export async function listImages(pageKey?: string) {
   }
 
   try {
-    let query = db.select().from(images);
-    if (pageKey) {
-      query = query.where(eq(images.pageKey, pageKey)) as any;
-    }
-    return await query.orderBy(desc(images.createdAt));
+    const conditions = [];
+    if (pageKey) conditions.push(eq(images.pageKey, pageKey));
+    if (!options.includeHidden) conditions.push(eq(images.isHidden, 0 as any));
+    if (!options.includeDeleted) conditions.push(isNull(images.deletedAt));
+    const result = await db
+      .select()
+      .from(images)
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(desc(images.createdAt));
+    return result;
   } catch (error) {
     console.error("[Database] Failed to list images:", error);
     return [];
@@ -413,11 +427,14 @@ export async function listDeletedArticles(category?: string) {
   }
 
   try {
-    let query = db.select().from(articles).where(isNotNull(articles.deletedAt));
-    if (category) {
-      query = query.where(eq(articles.category, category as any));
-    }
-    const result = await query.orderBy(desc(articles.deletedAt));
+    const condition = category
+      ? and(isNotNull(articles.deletedAt), eq(articles.category, category as any))
+      : isNotNull(articles.deletedAt);
+    const result = await db
+      .select()
+      .from(articles)
+      .where(condition)
+      .orderBy(desc(articles.deletedAt));
     return result;
   } catch (error) {
     console.error("[Database] Failed to list deleted articles:", error);
@@ -493,11 +510,14 @@ export async function listDeletedImages(pageKey?: string) {
   }
 
   try {
-    let query = db.select().from(images).where(isNotNull(images.deletedAt));
-    if (pageKey) {
-      query = query.where(eq(images.pageKey, pageKey));
-    }
-    const result = await query.orderBy(desc(images.deletedAt));
+    const condition = pageKey
+      ? and(isNotNull(images.deletedAt), eq(images.pageKey, pageKey))
+      : isNotNull(images.deletedAt);
+    const result = await db
+      .select()
+      .from(images)
+      .where(condition)
+      .orderBy(desc(images.deletedAt));
     return result;
   } catch (error) {
     console.error("[Database] Failed to list deleted images:", error);

@@ -45,12 +45,12 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
   };
 
   return (
-    <div className="w-44 shrink-0 flex flex-col justify-between h-screen sticky top-0" style={{ marginLeft: "152px", paddingTop: "95px", paddingBottom: "32px" }}>
+    <div className="site-sidebar">
       <div>
         <Link href="/">
           <h1 className="font-bold mb-10 cursor-pointer hover:opacity-70 transition" style={{ fontSize: "28px" }}>kimi.</h1>
         </Link>
-        <nav className="flex flex-col gap-3">
+        <nav className="site-nav flex flex-col gap-3">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -68,7 +68,7 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
         </nav>
       </div>
 
-      <div className="flex flex-col gap-3 pb-2">
+      <div className="site-sidebar-tools flex flex-col gap-3 pb-2">
         <button
           onClick={toggleTheme}
           className="flex items-center justify-center w-8 h-8 rounded hover:bg-muted transition"
@@ -96,9 +96,9 @@ function MainLayout({ children, theme, toggleTheme }: {
   toggleTheme: () => void;
 }) {
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="site-layout flex min-h-screen bg-background text-foreground">
       <Sidebar theme={theme} toggleTheme={toggleTheme} />
-      <main className="flex-1 overflow-y-auto" style={{ paddingRight: "40px", paddingTop: "20px" }}>
+      <main className="site-main flex-1 overflow-y-auto">
         {children}
       </main>
     </div>

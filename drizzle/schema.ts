@@ -1,5 +1,6 @@
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, longtext } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
+import { tinyint } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -34,6 +35,8 @@ export const articles = mysqlTable("articles", {
   category: mysqlEnum("category", ["a-whim", "imagination", "elsewhere"]).notNull(),
   authorId: int("authorId").notNull(),
   publishedAt: timestamp("publishedAt").defaultNow().notNull(),
+  isHidden: tinyint("isHidden").default(0).notNull(),
+  deletedAt: timestamp("deletedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -69,6 +72,8 @@ export const images = mysqlTable("images", {
   fileKey: varchar("fileKey", { length: 255 }).notNull().unique(),
   pageKey: varchar("pageKey", { length: 64 }).default("home").notNull(), // which page this image belongs to
   uploadedBy: int("uploadedBy"),
+  isHidden: tinyint("isHidden").default(0).notNull(),
+  deletedAt: timestamp("deletedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

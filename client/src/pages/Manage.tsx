@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -127,9 +127,9 @@ function RichEditor({
   );
 }
 
-type Section = "articles" | "pages" | "images" | "dashboard" | "greeting";
+type Section = "articles" | "pages" | "images" | "dashboard" | "greeting" | "recycle";
 type PageKey = "foyer" | "knock" | "imagination_intro";
-type Category = "a-whim" | "imagination";
+type Category = "a-whim" | "imagination" | "elsewhere";
 
 // ---- Dashboard Section ----
 function DashboardSection() {
@@ -312,10 +312,16 @@ export default function Manage() {
 
   // Articles
   const { data: articles = [], isLoading: articlesLoading, refetch: refetchArticles } =
-    trpc.articles.list.useQuery({ category: articleCategory });
+    trpc.articles.list.useQuery({ category: articleCategory, includeHidden: true });
   const createArticleMutation = trpc.articles.create.useMutation();
   const updateArticleMutation = trpc.articles.update.useMutation();
   const deleteArticleMutation = trpc.articles.delete.useMutation();
+  const hideArticleMutation = trpc.articles.hide.useMutation();
+  const unhideArticleMutation = trpc.articles.unhide.useMutation();
+  const softDeleteArticleMutation = trpc.articles.softDelete.useMutation();
+  const restoreArticleMutation = trpc.articles.restore.useMutation();
+  const { data: deletedArticles = [], refetch: refetchDeletedArticles } =
+    trpc.articles.listDeleted.useQuery({});
 
   // Pages
   const { data: pageContent, isLoading: pageLoading, refetch: refetchPage } =
@@ -325,8 +331,14 @@ export default function Manage() {
   // Images
   const [imagesPageKey, setImagesPageKey] = useState<string>("home");
   const { data: images = [], isLoading: imagesLoading, refetch: refetchImages } =
-    trpc.images.list.useQuery({ pageKey: imagesPageKey });
+    trpc.images.list.useQuery({ pageKey: imagesPageKey, includeHidden: true });
   const deleteImageMutation = trpc.images.delete.useMutation();
+  const hideImageMutation = trpc.images.hide.useMutation();
+  const unhideImageMutation = trpc.images.unhide.useMutation();
+  const softDeleteImageMutation = trpc.images.softDelete.useMutation();
+  const restoreImageMutation = trpc.images.restore.useMutation();
+  const { data: deletedImages = [], refetch: refetchDeletedImages } =
+    trpc.images.listDeleted.useQuery({});
 
   useEffect(() => {
     if (pageContent?.content !== undefined) {
@@ -377,11 +389,35 @@ export default function Manage() {
     setIsCreating(true);
   };
 
-  const handleDeleteArticle = async (id: number) => {
-    if (!window.confirm("delete this article?")) return;
+  const handleToggleArticleHidden = async (article: any) => {
     try {
-      await deleteArticleMutation.mutateAsync({ id });
-      refetchArticles();
+      if (article.isHidden) {
+        await unhideArticleMutation.mutateAsync({ id: article.id });
+      } else {
+        await hideArticleMutation.mutateAsync({ id: article.id });
+      }
+      await refetchArticles();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRestoreArticle = async (id: number) => {
+    try {
+      await restoreArticleMutation.mutateAsync({ id });
+      await refetchArticles();
+      await refetchDeletedArticles();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteArticle = async (id: number) => {
+    if (!window.confirm("move this article to recycle?")) return;
+    try {
+      await softDeleteArticleMutation.mutateAsync({ id });
+      await refetchArticles();
+      await refetchDeletedArticles();
     } catch (err) {
       console.error(err);
     }
@@ -416,15 +452,42 @@ export default function Manage() {
     }
   };
 
-  const handleDeleteImage = async (id: number) => {
-    if (!window.confirm("delete this image?")) return;
+  const handleToggleImageHidden = async (image: any) => {
     try {
-      await deleteImageMutation.mutateAsync({ id });
-      refetchImages();
+      if (image.isHidden) {
+        await unhideImageMutation.mutateAsync({ id: image.id });
+      } else {
+        await hideImageMutation.mutateAsync({ id: image.id });
+      }
+      await refetchImages();
     } catch (err) {
       console.error(err);
     }
   };
+
+  const handleRestoreImage = async (id: number) => {
+    try {
+      await restoreImageMutation.mutateAsync({ id });
+      await refetchImages();
+      await refetchDeletedImages();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteImage = async (id: number) => {
+    if (!window.confirm("move this image to recycle?")) return;
+    try {
+      await softDeleteImageMutation.mutateAsync({ id });
+      await refetchImages();
+      await refetchDeletedImages();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const visibleArticles = (articles as any[]).filter((article: any) => !article.deletedAt);
+  const visibleImages = (images as any[]).filter((image: any) => !image.deletedAt);
 
   const navBtn = (s: Section, label: string) => (
     <button
@@ -466,6 +529,7 @@ export default function Manage() {
           {navBtn("images", "images")}
           {navBtn("dashboard", "dashboard")}
           {navBtn("greeting", "greeting")}
+          {navBtn("recycle", "recycle")}
         </div>
       </div>
 
@@ -507,6 +571,7 @@ export default function Manage() {
             <div className="flex gap-6 mb-8">
               {subBtn<Category>("a-whim", articleCategory, "a whim", setArticleCategory)}
               {subBtn<Category>("imagination", articleCategory, "imagination", setArticleCategory)}
+              {subBtn<Category>("elsewhere", articleCategory, "elsewhere", setArticleCategory)}
             </div>
 
             {!isCreating ? (
@@ -585,12 +650,12 @@ export default function Manage() {
 
             {articlesLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
-            ) : articles.length === 0 ? (
+            ) : visibleArticles.length === 0 ? (
               <p className="text-sm text-muted-foreground tracking-wide">no articles yet.</p>
             ) : (
               <div className="max-w-2xl space-y-4">
-                {articles.map((article: any) => (
-                  <div key={article.id} className="flex items-start justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                {visibleArticles.map((article: any) => (
+                    <div key={article.id} className={`flex items-start justify-between py-3 ${article.isHidden ? "opacity-50" : ""}`} style={{ borderBottom: "1px solid var(--border)" }}>
                     <div>
                       <p className="text-sm font-semibold">{article.title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
@@ -603,6 +668,13 @@ export default function Manage() {
                       </p>
                     </div>
                     <div className="flex gap-2 ml-4 mt-0.5">
+                      <button
+                        onClick={() => handleToggleArticleHidden(article)}
+                        className="text-muted-foreground hover:text-foreground transition"
+                        title={article.isHidden ? "Show on site" : "Hide from site"}
+                      >
+                        {article.isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                       <button
                         onClick={() => handleEditArticle(article)}
                         className="text-muted-foreground hover:text-foreground transition"
@@ -655,27 +727,96 @@ export default function Manage() {
 
             {imagesLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
-            ) : images.length === 0 ? (
+            ) : visibleImages.length === 0 ? (
               <p className="text-sm text-muted-foreground tracking-wide">no images for {imagesPageKey} yet.</p>
             ) : (
               <div className="grid grid-cols-4 gap-4 max-w-3xl">
-                {images.map((image: any) => (
-                  <div key={image.id} className="relative group">
+                {visibleImages.map((image: any) => (
+                  <div key={image.id} className={`relative group ${image.isHidden ? "opacity-50" : ""}`}>
                     <img
                       src={image.url}
                       alt=""
                       className="w-full h-28 object-cover rounded"
                     />
-                    <button
-                      onClick={() => handleDeleteImage(image.id)}
-                      className="absolute top-1.5 right-1.5 p-1 bg-background/80 rounded opacity-0 group-hover:opacity-100 transition hover:bg-destructive hover:text-white"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                    <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                      <button
+                        onClick={() => handleToggleImageHidden(image)}
+                        title={image.isHidden ? "Show on site" : "Hide from site"}
+                        className="p-1 bg-background/80 rounded hover:bg-muted"
+                      >
+                        {image.isHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteImage(image.id)}
+                        title="Move to recycle"
+                        className="p-1 bg-background/80 rounded hover:bg-destructive hover:text-white"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* RECYCLE BIN */}
+        {section === "recycle" && (
+          <div className="space-y-12 max-w-3xl">
+            <div>
+              <h2 className="text-sm font-semibold mb-4 tracking-wide">deleted articles</h2>
+              {(deletedArticles as any[]).length === 0 ? (
+                <p className="text-sm text-muted-foreground tracking-wide">recycle is empty.</p>
+              ) : (
+                <div className="space-y-2">
+                  {(deletedArticles as any[]).map((article: any) => (
+                    <div
+                      key={article.id}
+                      className="flex items-center justify-between py-3"
+                      style={{ borderBottom: "1px solid var(--border)" }}
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">{article.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
+                          {article.category} · deleted {article.deletedAt ? new Date(article.deletedAt).toLocaleDateString("en-US") : "—"}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleRestoreArticle(article.id)}
+                        className="text-muted-foreground hover:text-foreground transition"
+                        title="Restore article"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h2 className="text-sm font-semibold mb-4 tracking-wide">deleted images</h2>
+              {(deletedImages as any[]).length === 0 ? (
+                <p className="text-sm text-muted-foreground tracking-wide">no deleted images.</p>
+              ) : (
+                <div className="grid grid-cols-4 gap-4 max-w-3xl">
+                  {(deletedImages as any[]).map((image: any) => (
+                    <div key={image.id} className="relative group opacity-60">
+                      <img src={image.url} alt="" className="w-full h-28 object-cover rounded" />
+                      <button
+                        onClick={() => handleRestoreImage(image.id)}
+                        className="absolute top-1.5 right-1.5 p-1 bg-background/80 rounded opacity-0 group-hover:opacity-100 transition hover:bg-muted"
+                        title="Restore image"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                      </button>
+                      <p className="text-[10px] text-muted-foreground mt-1 tracking-wide">{image.pageKey}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

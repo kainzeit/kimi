@@ -4,8 +4,10 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import {
   listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle,
+  hideArticle, unhideArticle, softDeleteArticle, restoreArticle, listDeletedArticles,
   getPageContent, updatePageContent,
   listImages, deleteImage,
+  hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages,
   createAccessLog, listAccessLogs,
   incrementArticleView, listArticleViews,
   getSiteConfig, setSiteConfig,
@@ -25,8 +27,15 @@ export const appRouter = router({
 
   articles: router({
     list: publicProcedure
-      .input(z.object({ category: z.string() }))
-      .query(async ({ input }) => listArticles(input.category)),
+      .input(z.object({
+        category: z.string(),
+        includeHidden: z.boolean().optional(),
+        includeDeleted: z.boolean().optional(),
+      }))
+      .query(async ({ input }) => listArticles(input.category, {
+        includeHidden: input.includeHidden,
+        includeDeleted: input.includeDeleted,
+      })),
 
     get: publicProcedure
       .input(z.object({ slug: z.string() }))
@@ -37,7 +46,7 @@ export const appRouter = router({
         slug: z.string(),
         title: z.string(),
         content: z.string(),
-        category: z.enum(["a-whim", "imagination"]),
+        category: z.enum(["a-whim", "imagination", "elsewhere"]),
         publishedAt: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -69,6 +78,26 @@ export const appRouter = router({
     delete: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => deleteArticle(input.id)),
+
+    hide: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => hideArticle(input.id)),
+
+    unhide: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => unhideArticle(input.id)),
+
+    softDelete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => softDeleteArticle(input.id)),
+
+    restore: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => restoreArticle(input.id)),
+
+    listDeleted: publicProcedure
+      .input(z.object({ category: z.string().optional() }))
+      .query(async ({ input }) => listDeletedArticles(input.category)),
   }),
 
   pages: router({
@@ -83,12 +112,39 @@ export const appRouter = router({
 
   images: router({
     list: publicProcedure
-      .input(z.object({ pageKey: z.string().optional() }))
-      .query(async ({ input }) => listImages(input.pageKey)),
+      .input(z.object({
+        pageKey: z.string().optional(),
+        includeHidden: z.boolean().optional(),
+        includeDeleted: z.boolean().optional(),
+      }))
+      .query(async ({ input }) => listImages(input.pageKey, {
+        includeHidden: input.includeHidden,
+        includeDeleted: input.includeDeleted,
+      })),
 
     delete: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => deleteImage(input.id)),
+
+    hide: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => hideImage(input.id)),
+
+    unhide: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => unhideImage(input.id)),
+
+    softDelete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => softDeleteImage(input.id)),
+
+    restore: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => restoreImage(input.id)),
+
+    listDeleted: publicProcedure
+      .input(z.object({ pageKey: z.string().optional() }))
+      .query(async ({ input }) => listDeletedImages(input.pageKey)),
   }),
 
   // Greeting gate: verify the visitor's input against the stored keyword

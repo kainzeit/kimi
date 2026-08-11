@@ -42,8 +42,7 @@ export default function Greeting({ onEnter }: GreetingProps) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-start justify-start bg-background text-foreground"
-      style={{ paddingLeft: "152px", paddingTop: "95px" }}
+      className="greeting-gate min-h-screen flex flex-col items-start justify-start bg-background text-foreground"
     >
       <p
         className="text-sm mb-12 text-foreground/70"
