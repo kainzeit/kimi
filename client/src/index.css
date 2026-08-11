@@ -448,3 +448,121 @@
     width: min(100%, 256px);
   }
 }
+
+/* Mobile public-site navigation: compact header plus an optional menu panel. */
+.site-sidebar-header {
+  display: block;
+}
+
+.mobile-nav-toggle {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .site-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--background);
+  }
+
+  .site-sidebar-navigation {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .site-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .site-sidebar h1 {
+    margin-bottom: 0;
+    font-size: 24px !important;
+  }
+
+  .mobile-nav-toggle {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--foreground);
+    transition: background-color 160ms ease-out, transform 160ms ease-out;
+  }
+
+  .mobile-nav-toggle:hover {
+    background: var(--muted);
+  }
+
+  .mobile-nav-toggle:active {
+    transform: scale(0.97);
+  }
+
+  .site-nav {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 8px 20px 22px;
+    background: var(--background);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    visibility: hidden;
+    transition: opacity 180ms ease-out, transform 180ms ease-out, visibility 0s linear 180ms;
+  }
+
+  .site-sidebar.mobile-nav-open .site-nav {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .site-nav .nav-link {
+    width: fit-content;
+    padding: 2px 0;
+  }
+
+  .public-post-layout {
+    width: 100%;
+    max-width: none;
+    padding: 32px 20px 48px;
+    overflow-x: clip;
+  }
+
+  .public-post-layout article,
+  .public-post-layout article + div,
+  .public-post-layout .prose-content {
+    width: 100%;
+    max-width: none;
+  }
+
+  .public-post-layout .prose-content,
+  .public-post-layout .prose-content p,
+  .public-post-layout .prose-content li,
+  .public-post-layout .prose-content a {
+    overflow-wrap: anywhere;
+  }
+
+  .public-post-layout .prose-content pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .public-post-layout .prose-content img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}

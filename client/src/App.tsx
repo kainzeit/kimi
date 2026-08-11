@@ -14,7 +14,7 @@ import Post from "./pages/Post";
 import Manage from "./pages/Manage";
 import Greeting from "./pages/Greeting";
 import { useState, useEffect } from "react";
-import { Moon, Sun, Settings } from "lucide-react";
+import { Menu, Moon, Sun, Settings, X } from "lucide-react";
 import { Link } from "wouter";
 
 function useIsPreviewMode() {
@@ -30,6 +30,7 @@ function useIsPreviewMode() {
 function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme: () => void }) {
   const [location] = useLocation();
   const isPreview = useIsPreviewMode();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const navItems = [
     { href: "/foyer", label: "foyer" },
@@ -44,17 +45,45 @@ function Sidebar({ theme, toggleTheme }: { theme: "light" | "dark"; toggleTheme:
     return location.startsWith(href);
   };
 
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileNavOpen(false);
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileNavOpen]);
+
   return (
-    <div className="site-sidebar">
-      <div>
-        <Link href="/">
-          <h1 className="font-bold mb-10 cursor-pointer hover:opacity-70 transition" style={{ fontSize: "28px" }}>kimi.</h1>
-        </Link>
-        <nav className="site-nav flex flex-col gap-3">
+    <div className={`site-sidebar ${mobileNavOpen ? "mobile-nav-open" : ""}`}>
+      <div className="site-sidebar-navigation">
+        <div className="site-sidebar-header">
+          <Link href="/" onClick={() => setMobileNavOpen(false)}>
+            <h1 className="font-bold mb-10 cursor-pointer hover:opacity-70 transition" style={{ fontSize: "28px" }}>kimi.</h1>
+          </Link>
+          <button
+            type="button"
+            className="mobile-nav-toggle"
+            onClick={() => setMobileNavOpen((open) => !open)}
+            aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={mobileNavOpen}
+            aria-controls="primary-navigation"
+          >
+            {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+        <nav id="primary-navigation" className="site-nav flex flex-col gap-3" aria-label="Primary navigation">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileNavOpen(false)}
               className={`nav-link tracking-wide transition-colors ${
                 isActive(item.href)
                   ? "text-foreground font-semibold"

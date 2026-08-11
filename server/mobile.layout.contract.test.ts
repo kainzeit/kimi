@@ -1,0 +1,27 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+
+const projectRoot = process.cwd();
+
+describe("Mobile public-site layout contract", () => {
+  it("keeps the public navigation collapsible and closes it after navigation", async () => {
+    const appSource = await readFile(path.join(projectRoot, "client/src/App.tsx"), "utf8");
+
+    expect(appSource).toContain('useState(false)');
+    expect(appSource).toContain('className={`site-sidebar ${mobileNavOpen ? "mobile-nav-open" : ""}`}');
+    expect(appSource).toContain('aria-controls="primary-navigation"');
+    expect(appSource).toContain('onClick={() => setMobileNavOpen(false)}');
+    expect(appSource).toContain('if (event.key === "Escape") setMobileNavOpen(false)');
+  });
+
+  it("reserves no sidebar width for mobile article reading and prevents content overflow", async () => {
+    const styles = await readFile(path.join(projectRoot, "client/src/index.css"), "utf8");
+
+    expect(styles).toContain('.site-sidebar.mobile-nav-open .site-nav');
+    expect(styles).toContain('.public-post-layout {\n    width: 100%;\n    max-width: none;');
+    expect(styles).toContain('overflow-x: clip;');
+    expect(styles).toContain('.public-post-layout .prose-content img');
+    expect(styles).toContain('max-width: 100% !important;');
+  });
+});

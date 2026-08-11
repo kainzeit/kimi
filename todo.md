@@ -136,3 +136,7 @@
 - [x] Add a recycle-only permanent article deletion helper and tRPC procedure
 - [x] Add a permanently delete button with an irreversible-action confirmation in Article recycle
 - [x] Add permanent deletion mutation and state-transition regression coverage
+- [x] Implement a compact mobile header with a toggleable navigation panel for kimi., Foyer, A Whim, Imagination, Elsewhere, and Knock
+- [x] Close the mobile navigation automatically after choosing a section or article
+- [x] Make public article detail pages use the full available mobile viewport width without sidebar space or horizontal overflow
+- [x] Verify the mobile navigation and article reading experience at a 375px viewport while preserving the desktop sidebar layout
