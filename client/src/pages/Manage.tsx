@@ -253,19 +253,30 @@ function RichEditor({
               >
                 L
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const customH = window.prompt("Enter image height in px (e.g. 200px) or width (e.g. 400px):", "227px");
-                  if (customH) {
-                    editor.chain().focus().updateAttributes("image", { height: customH }).run();
-                  }
+              <span className="text-muted-foreground ml-1">W:</span>
+              <input
+                type="text"
+                className="w-12 bg-background border rounded px-1 py-0.5 text-xs text-foreground text-center"
+                defaultValue={editor.getAttributes("image").width || "auto"}
+                key={`w-${editor.getAttributes("image").src}`}
+                onBlur={(e) => {
+                  const val = e.target.value.trim() || "auto";
+                  editor.chain().focus().updateAttributes("image", { width: val }).run();
                 }}
-                className="px-1.5 py-0.5 bg-muted rounded hover:bg-foreground hover:text-background transition text-xs"
-                title="Custom size"
-              >
-                custom
-              </button>
+                title="Image width"
+              />
+              <span className="text-muted-foreground ml-1">H:</span>
+              <input
+                type="text"
+                className="w-12 bg-background border rounded px-1 py-0.5 text-xs text-foreground text-center"
+                defaultValue={editor.getAttributes("image").height || "227px"}
+                key={`h-${editor.getAttributes("image").src}`}
+                onBlur={(e) => {
+                  const val = e.target.value.trim() || "227px";
+                  editor.chain().focus().updateAttributes("image", { height: val }).run();
+                }}
+                title="Image height"
+              />
             </div>
           </>
         )}

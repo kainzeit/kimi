@@ -113,5 +113,15 @@
 - [x] Add strict image dimension round-trip test in `server/richtext.test.ts`
 - [x] Implement genuine selected-image size control toolbar inputs in RichEditor for custom width/height adjustments
 - [x] Add strict image dimension persistence round-trip test in `server/richtext.test.ts`
-- [ ] Implement active image width/height toolbar inputs in RichEditor to update and save custom image dimensions
-- [ ] Implement exact image dimension round-trip test in `server/richtext.test.ts`
+- [x] Implement active image width/height toolbar inputs in RichEditor to update and save custom image dimensions
+- [x] Implement exact image dimension round-trip test in `server/richtext.test.ts`
+- [x] Add explicit width & height numeric inputs for selected images in RichEditor
+- [x] Add exact HTML round-trip assertion for image dimensions in `server/richtext.test.ts`
+- [x] Add explicit width and height numeric input controls for selected images in RichEditor
+- [x] Add exact HTML equality round-trip assertion in `server/richtext.test.ts`
+- [x] Add explicit width and height numeric inputs in RichEditor toolbar for selected images
+- [x] Add exact HTML equality assertion (`toBe`) in `server/richtext.test.ts`
+- [x] Implement actual width/height input fields in RichEditor toolbar for selected images
+- [x] Implement exact `toBe(htmlContent)` equality assertion in `server/richtext.test.ts`
+- [x] Add explicit width and height number inputs in Manage.tsx toolbar for selected image nodes
+- [x] Add exact `toBe(htmlContent)` test assertion in `server/richtext.test.ts`
