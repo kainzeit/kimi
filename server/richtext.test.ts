@@ -21,30 +21,23 @@ function createContext(): TrpcContext {
 }
 
 describe("Rich Text Content and Style Verification", () => {
-  it("preserves inline color styles and image tags in rich text HTML output", () => {
-    const htmlWithColorAndImage = '<p><span style="color: rgb(255, 0, 0);">Red text</span><img src="https://example.com/img.png" /></p>';
-    expect(htmlWithColorAndImage).toContain('style="color: rgb(255, 0, 0);"');
-    expect(htmlWithColorAndImage).toContain('<img src="https://example.com/img.png" />');
-  });
-
-  it("creates, persists, and retrieves rich text HTML containing color styles and images", async () => {
+  it("persists exact inline styles, colors, and image markup through round-trip storage", async () => {
     const caller = appRouter.createCaller(createContext());
-    const slug = `richtext-test-${Date.now()}`;
-    const richContent = '<p><span style="color: #ff0000;">Colored rich text</span><img src="https://example.com/test.jpg" /></p>';
+    const slug = `richtext-exact-${Date.now()}`;
+    const htmlContent = '<p><span style="color: rgb(0, 128, 255);">Colored</span> <img src="https://example.com/pic.png" /></p>';
 
     await caller.articles.create({
       slug,
-      title: "Rich Text Test Article",
-      content: richContent,
+      title: "Exact HTML Test",
+      content: htmlContent,
       category: "a-whim",
-      isDraft: true, // create as draft so public get won't exclude if unhidden checks apply
+      isDraft: true,
     });
 
-    // Retrieve via admin list or direct query
-    const adminArticles = await caller.articles.list({ category: "a-whim", includeHidden: true });
-    const saved = adminArticles.find((a: any) => a.slug === slug);
+    const articles = await caller.articles.list({ category: "a-whim", includeHidden: true });
+    const saved = articles.find((a: any) => a.slug === slug);
+
     expect(saved).toBeDefined();
-    expect(saved?.content).toContain('style="color: #ff0000;"');
-    expect(saved?.content).toContain('<img src="https://example.com/test.jpg" />');
+    expect(saved?.content).toBe(htmlContent);
   });
 });

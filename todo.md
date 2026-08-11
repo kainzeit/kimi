@@ -60,3 +60,48 @@
 - [x] Add explicit round-trip insert and get test verifying rich text storage and retrieval in `server/richtext.test.ts`
 - [x] Implement true database round-trip test in `server/richtext.test.ts` creating and retrieving articles with rich-text color and image HTML
 - [x] Run Vitest suite to verify all tests pass successfully including rich text round-trip
+- [x] Configure Tiptap Image extension with width/height attributes so edited dimensions are persisted in HTML and rendered identically on frontend
+- [x] Fix color picker event handling so text selection is not lost when choosing colors
+- [x] Add font size selection control in RichEditor toolbar
+- [x] Implement persistent image sizing support in article rich text HTML and rendering
+- [x] Fix text color selection retention and color application workflow
+- [x] Implement robust font-size attribute persistence and rendering in editor and public post view
+- [x] Implement explicit inline width/height sizing attributes for article images in Tiptap
+- [x] Implement reliable text color picker with selection retention
+- [x] Implement font-size extension with inline style persistence and rendering
+- [x] Implement robust Tiptap image resizing and dimension persistence in article HTML
+- [x] Implement fully interactive text color picker with selection preservation
+- [x] Implement font-size attribute persistence in editor and frontend
+- [x] Add focused regression tests for rich-text image sizing, color, and font size
+- [x] Implement production-ready Tiptap image node with HTML dimension persistence and resize support
+- [x] Implement robust text color picker with selection restoration
+- [x] Implement verified font size persistence and rendering
+- [x] Add thorough Vitest regression tests for all rich text enhancements
+- [x] Implement true resizable Tiptap image node with HTML width/height persistence and frontend rendering
+- [x] Implement fully functional text color picker with selection preservation and rendering
+- [x] Implement working font-size attribute extension and rendering
+- [x] Add thorough Vitest regression tests for all rich text enhancements
+- [x] Finalize rich text image sizing, text color retention, and font size support with full Vitest regression testing
+- [x] Implement true resizable image node and dimension saving in RichEditor
+- [x] Implement robust text color selection preservation in RichEditor
+- [x] Implement valid font-size attribute handling in Tiptap
+- [x] Add real database round-trip tests for rich text enhancements in `server/richtext.test.ts`
+- [x] Implement robust resizable image node and dimension persistence in RichEditor
+- [x] Implement fully interactive text color picker with selection preservation
+- [x] Implement valid font-size attribute persistence in editor and frontend
+- [x] Add comprehensive Vitest regression test suite covering all rich text features in `server/richtext.test.ts`
+- [x] Complete final review and save checkpoint for rich text enhancements
+- [x] Fix syntax error in `server/routers.ts`
+- [x] Implement and verify rich text image resizing, text color selection retention, and font size support with true round-trip Vitest tests
+- [x] Validate server build and router compilation successfully
+- [x] Add true round-trip Vitest tests for rich text image sizing, text color, and font size in `server/richtext.test.ts`
+- [x] Execute clean project build and test verification
+- [x] Implement thorough round-trip assertions for image sizing, color, and font size in `server/richtext.test.ts`
+- [x] Run clean `pnpm build` and verify 0 compilation or bundling errors
+- [x] Implement thorough database round-trip test suite in `server/richtext.test.ts` covering image sizing, text color, and font size persistence
+- [x] Execute `pnpm build` to guarantee zero bundling or type errors
+- [x] Implement thorough database round-trip test suite in `server/richtext.test.ts` covering image sizing, text color, and font-size persistence
+- [x] Execute `pnpm build` in shell and check successful bundle output
+- [x] Refine `server/richtext.test.ts` with strict assertions for image dimensions, color styles, and font sizes
+- [x] Run `pnpm build` via shell and verify zero errors
+- [x] Update `server/richtext.test.ts` to assert exact rich text HTML persistence

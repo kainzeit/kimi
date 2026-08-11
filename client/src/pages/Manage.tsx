@@ -10,6 +10,7 @@ import Link from "@tiptap/extension-link";
 import Color from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Image from "@tiptap/extension-image";
+// FontSize handled via inline styles / select dropdown toolbar commands
 
 function RichEditor({
   content,
@@ -21,7 +22,14 @@ function RichEditor({
   placeholder?: string;
 }) {
   const editor = useEditor({
-    extensions: [StarterKit, Underline, Link.configure({ openOnClick: false }), TextStyle, Color, Image.configure({ inline: true, allowBase64: true })],
+    extensions: [
+      StarterKit,
+      Underline,
+      Link.configure({ openOnClick: false }),
+      TextStyle,
+      Color,
+      Image.configure({ inline: true, allowBase64: true, HTMLAttributes: { class: "resizable-article-img" } }),
+    ],
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -71,21 +79,15 @@ function RichEditor({
         </button>
         <div className="w-px bg-border mx-1" />
         {/* Text color picker */}
-        <div className="relative flex items-center" title="Text color">
+        <div className="relative flex items-center gap-1" title="Text color">
           <label className="p-1.5 rounded hover:bg-muted cursor-pointer flex items-center gap-1" title="Text color">
             <Palette className="w-3.5 h-3.5" />
             <input
               type="color"
-              className="absolute opacity-0 w-0 h-0"
-              onMouseDown={() => {
-                editor.commands.focus();
-              }}
-              onInput={(e) => {
-                const color = (e.target as HTMLInputElement).value;
-                editor.chain().focus().setColor(color).run();
-              }}
+              className="absolute opacity-0 w-0 h-0 pointer-events-none"
               onChange={(e) => {
-                editor.chain().focus().setColor(e.target.value).run();
+                const color = e.target.value;
+                editor.chain().focus().setColor(color).run();
               }}
             />
             <span
@@ -95,8 +97,7 @@ function RichEditor({
           </label>
           <button
             type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
+            onClick={() => {
               editor.chain().focus().unsetColor().run();
             }}
             className="p-1.5 rounded hover:bg-muted text-xs text-muted-foreground"
@@ -104,6 +105,29 @@ function RichEditor({
           >
             ✕
           </button>
+        </div>
+        <div className="w-px bg-border mx-1" />
+        {/* Font size buttons / selector */}
+        <div className="flex items-center gap-1 text-xs">
+          <select
+            className="bg-background border rounded px-1.5 py-1 text-xs text-foreground cursor-pointer"
+            onChange={(e) => {
+              const size = e.target.value;
+              if (size === "normal") {
+                editor.chain().focus().setMark("textStyle", { fontSize: null }).run();
+              } else {
+                editor.chain().focus().setMark("textStyle", { fontSize: size }).run();
+              }
+            }}
+            defaultValue="normal"
+            title="Font size"
+          >
+            <option value="normal">normal</option>
+            <option value="12px">small</option>
+            <option value="16px">medium</option>
+            <option value="20px">large</option>
+            <option value="24px">huge</option>
+          </select>
         </div>
         <div className="w-px bg-border mx-1" />
         <button
