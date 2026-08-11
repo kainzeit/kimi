@@ -21,14 +21,14 @@ function createContext(): TrpcContext {
 }
 
 describe("Rich Text Content and Style Verification", () => {
-  it("persists exact inline styles, colors, and image dimensions with exact HTML equality round-trip", async () => {
+  it("persists exact inline styles, colors, image dimensions, and font sizes through round-trip storage", async () => {
     const caller = appRouter.createCaller(createContext());
-    const slug = `richtext-exact-eq-${Date.now()}`;
-    const htmlContent = '<p><span style="color: rgb(0, 128, 255);">Colored</span> <img src="https://example.com/pic.png" width="300px" height="227px" style="width: 300px; height: 227px; object-fit: contain;" /></p>';
+    const slug = `richtext-fontsize-${Date.now()}`;
+    const htmlContent = '<p><span style="font-size: 20px; color: rgb(0, 128, 255);">Large Colored</span> <img src="https://example.com/pic.png" width="300px" height="227px" style="width: 300px; height: 227px; object-fit: contain;" /></p>';
 
     await caller.articles.create({
       slug,
-      title: "Exact HTML Equality Test",
+      title: "Font Size Test",
       content: htmlContent,
       category: "a-whim",
       isDraft: true,
