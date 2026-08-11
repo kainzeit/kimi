@@ -20,10 +20,9 @@ const CustomImage = Image.extend({
         default: "auto",
         parseHTML: element => element.getAttribute("width") || element.style.width || "auto",
         renderHTML: attributes => {
-          if (!attributes.width) return {};
           return {
-            width: attributes.width,
-            style: `width: ${attributes.width}; height: ${attributes.height || "227px"}; object-fit: contain;`,
+            width: attributes.width || "auto",
+            style: `width: ${attributes.width || "auto"}; height: ${attributes.height || "227px"}; object-fit: contain; cursor: nwse-resize;`,
           };
         },
       },
@@ -33,14 +32,119 @@ const CustomImage = Image.extend({
         renderHTML: attributes => {
           return {
             height: attributes.height || "227px",
-            style: `width: ${attributes.width || "auto"}; height: ${attributes.height || "227px"}; object-fit: contain;`,
+            style: `width: ${attributes.width || "auto"}; height: ${attributes.height || "227px"}; object-fit: contain; cursor: nwse-resize;`,
           };
         },
       },
     };
   },
+  addNodeView() {
+    return ({ node, getPos, editor }) => {
+      const container = document.createElement("span");
+      container.style.display = "inline-block";
+      container.style.position = "relative";
+      container.style.margin = "0.5rem 0";
+
+      const img = document.createElement("img");
+      img.src = node.attrs.src;
+      img.style.width = node.attrs.width || "auto";
+      img.style.height = node.attrs.height || "227px";
+      img.style.objectFit = "contain";
+      img.style.borderRadius = "4px";
+      img.style.cursor = "nwse-resize";
+      container.appendChild(img);
+
+      // Drag resize handler
+      let isResizing = false;
+      let startX = 0;
+      let startY = 0;
+      let startWidth = 0;
+      let startHeight = 0;
+
+      img.addEventListener("mousedown", (e) => {
+        // Only trigger on bottom-right corner or direct drag
+        isResizing = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startWidth = img.clientWidth;
+        startHeight = img.clientHeight;
+
+        const onMouseMove = (moveEvent: MouseEvent) => {
+          if (!isResizing) return;
+          const dx = moveEvent.clientX - startX;
+          const dy = moveEvent.clientY - startY;
+          const newW = Math.max(50, startWidth + dx);
+          const newH = Math.max(50, startHeight + dy);
+          img.style.width = `${newW}px`;
+          img.style.height = `${newH}px`;
+        };
+
+        const onMouseUp = (upEvent: MouseEvent) => {
+          if (!isResizing) return;
+          isResizing = false;
+          window.removeEventListener("mousemove", onMouseMove);
+          window.removeEventListener("mouseup", onMouseUp);
+
+          const finalW = `${img.clientWidth}px`;
+          const finalH = `${img.clientHeight}px`;
+
+          if (typeof getPos === "function") {
+            const pos = getPos();
+            if (typeof pos === "number") {
+              editor.chain().focus().setNodeSelection(pos).updateAttributes("image", { width: finalW, height: finalH }).run();
+            }
+          }
+        };
+
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+        e.preventDefault();
+      });
+
+      return {
+        dom: container,
+        update(updatedNode) {
+          if (updatedNode.type.name !== "image") return false;
+          img.src = updatedNode.attrs.src;
+          img.style.width = updatedNode.attrs.width || "auto";
+          img.style.height = updatedNode.attrs.height || "227px";
+          return true;
+        },
+      };
+    };
+  },
 });
-// FontSize handled via inline styles / select dropdown toolbar commands
+// Custom FontSize extension integrated with TextStyle mark
+const FontSize = TextStyle.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      fontSize: {
+        default: null,
+        parseHTML: element => element.style.fontSize.replace('important', '').trim() || null,
+        renderHTML: attributes => {
+          if (!attributes.fontSize) {
+            return {};
+          }
+          return {
+            style: `font-size: ${attributes.fontSize}`,
+          };
+        },
+      },
+    };
+  },
+  addCommands() {
+    return {
+      ...this.parent?.(),
+      setFontSize: (fontSize: string) => ({ chain }) => {
+        return chain().setMark('textStyle', { fontSize }).run();
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run();
+      },
+    };
+  },
+});
 
 function RichEditor({
   content,
@@ -56,7 +160,7 @@ function RichEditor({
       StarterKit,
       Underline,
       Link.configure({ openOnClick: false }),
-      TextStyle,
+      FontSize,
       Color,
       CustomImage.configure({ inline: true, allowBase64: true, HTMLAttributes: { class: "resizable-article-img" } }),
     ],
@@ -144,9 +248,9 @@ function RichEditor({
             onChange={(e) => {
               const size = e.target.value;
               if (size === "normal") {
-                editor.chain().focus().setMark("textStyle", { fontSize: null }).run();
+                (editor.chain().focus() as any).unsetFontSize().run();
               } else {
-                editor.chain().focus().setMark("textStyle", { fontSize: size }).run();
+                (editor.chain().focus() as any).setFontSize(size).run();
               }
             }}
             defaultValue="normal"

@@ -125,3 +125,5 @@
 - [x] Implement exact `toBe(htmlContent)` equality assertion in `server/richtext.test.ts`
 - [x] Add explicit width and height number inputs in Manage.tsx toolbar for selected image nodes
 - [x] Add exact `toBe(htmlContent)` test assertion in `server/richtext.test.ts`
+- [ ] Implement true resizable image handling for uploaded and online images in RichEditor
+- [ ] Implement functional FontSize extension in Tiptap so font size dropdown updates selection and persists in HTML
