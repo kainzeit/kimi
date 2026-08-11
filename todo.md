@@ -105,3 +105,5 @@
 - [x] Refine `server/richtext.test.ts` with strict assertions for image dimensions, color styles, and font sizes
 - [x] Run `pnpm build` via shell and verify zero errors
 - [x] Update `server/richtext.test.ts` to assert exact rich text HTML persistence
+- [ ] Implement custom resizable Image node in Tiptap with width/height state and persistence into saved HTML
+- [ ] Update frontend article rendering CSS and styles in `index.css` and `Post.tsx` to strictly respect saved inline image width/height or default to ~6cm height

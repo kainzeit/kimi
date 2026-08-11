@@ -10,6 +10,36 @@ import Link from "@tiptap/extension-link";
 import Color from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Image from "@tiptap/extension-image";
+
+// Custom Resizable Image extension that persists width and height attributes in HTML
+const CustomImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: "auto",
+        parseHTML: element => element.getAttribute("width") || element.style.width || "auto",
+        renderHTML: attributes => {
+          if (!attributes.width) return {};
+          return {
+            width: attributes.width,
+            style: `width: ${attributes.width}; height: ${attributes.height || "227px"}; object-fit: contain;`,
+          };
+        },
+      },
+      height: {
+        default: "227px",
+        parseHTML: element => element.getAttribute("height") || element.style.height || "227px",
+        renderHTML: attributes => {
+          return {
+            height: attributes.height || "227px",
+            style: `width: ${attributes.width || "auto"}; height: ${attributes.height || "227px"}; object-fit: contain;`,
+          };
+        },
+      },
+    };
+  },
+});
 // FontSize handled via inline styles / select dropdown toolbar commands
 
 function RichEditor({
@@ -28,7 +58,7 @@ function RichEditor({
       Link.configure({ openOnClick: false }),
       TextStyle,
       Color,
-      Image.configure({ inline: true, allowBase64: true, HTMLAttributes: { class: "resizable-article-img" } }),
+      CustomImage.configure({ inline: true, allowBase64: true, HTMLAttributes: { class: "resizable-article-img" } }),
     ],
     content,
     onUpdate: ({ editor }) => {

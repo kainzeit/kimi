@@ -225,8 +225,6 @@
   /* Article body images: default height 6cm (~227px), proportional width, resizable */
   .prose-content img,
   .ProseMirror img {
-    height: 227px;
-    width: auto;
     max-width: 100%;
     object-fit: contain;
     border-radius: 4px;
@@ -235,6 +233,11 @@
     display: inline-block;
     resize: both;
     overflow: auto;
+  }
+  .prose-content img:not([style*="height"]),
+  .ProseMirror img:not([style*="height"]) {
+    height: 227px;
+    width: auto;
   }
 
   /**
