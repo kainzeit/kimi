@@ -49,3 +49,14 @@
 - [x] Create `server/draft.state.test.ts` with explicit fixture-backed tests for draft vs published state transitions and public query filtering
 - [x] Add explicit state transition tests for `articles.setDraft` and `images.setDraft` in `server/draft.state.test.ts`
 - [x] Add explicit execution tests in `server/draft.state.test.ts` calling `articles.setDraft` and `images.setDraft` with before/after assertions
+- [x] Add rich editor extensions and UI buttons for local file upload and online URL image insertion
+- [x] Ensure inserted images in article content default to ~6cm height (approx 227px) with proportional width and support resizing or object-fit
+- [x] Fix rich text editor text color picker functionality so text color changes persist and render properly in public article details
+- [x] Verify rich text editor text color persistence and public rendering end-to-end
+- [x] Add regression test or assertion covering rich text color style retention
+- [x] Perform concrete test coverage in Vitest for inline text color style retention in article rich-text rendering
+- [x] Add rigorous Vitest persistence test for article rich text HTML storage and retrieval
+- [x] Add database-backed Vitest round-trip test for article rich text storage and retrieval
+- [x] Add explicit round-trip insert and get test verifying rich text storage and retrieval in `server/richtext.test.ts`
+- [x] Implement true database round-trip test in `server/richtext.test.ts` creating and retrieving articles with rich-text color and image HTML
+- [x] Run Vitest suite to verify all tests pass successfully including rich text round-trip

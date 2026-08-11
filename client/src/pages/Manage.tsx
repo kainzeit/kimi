@@ -9,6 +9,7 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Color from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
+import Image from "@tiptap/extension-image";
 
 function RichEditor({
   content,
@@ -20,7 +21,7 @@ function RichEditor({
   placeholder?: string;
 }) {
   const editor = useEditor({
-    extensions: [StarterKit, Underline, Link.configure({ openOnClick: false }), TextStyle, Color],
+    extensions: [StarterKit, Underline, Link.configure({ openOnClick: false }), TextStyle, Color, Image.configure({ inline: true, allowBase64: true })],
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -120,6 +121,47 @@ function RichEditor({
           title="Bullet list"
         >
           <List className="w-3.5 h-3.5" />
+        </button>
+        <div className="w-px bg-border mx-1" />
+        {/* Insert image: local upload or online URL */}
+        <label className="p-1.5 rounded hover:bg-muted cursor-pointer flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition" title="Upload local image">
+          <Upload className="w-3.5 h-3.5" />
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("pageKey", "article-inline");
+                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data?.url) {
+                    editor.chain().focus().setImage({ src: data.url }).run();
+                  }
+                }
+              } catch (err) {
+                console.error("Failed to upload image:", err);
+              }
+            }}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => {
+            const url = window.prompt("Enter online image URL (or HTML/Google Drive image link):");
+            if (url) {
+              editor.chain().focus().setImage({ src: url }).run();
+            }
+          }}
+          className="p-1.5 rounded hover:bg-muted text-xs text-muted-foreground hover:text-foreground transition flex items-center gap-1"
+          title="Insert online image URL"
+        >
+          <span>🌐 img</span>
         </button>
       </div>
       <EditorContent editor={editor} />
