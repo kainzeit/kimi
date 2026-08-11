@@ -24,4 +24,15 @@ describe("Mobile public-site layout contract", () => {
     expect(styles).toContain('.public-post-layout .prose-content img');
     expect(styles).toContain('max-width: 100% !important;');
   });
+
+  it("uses saved page-image dimensions on desktop and compact article line height", async () => {
+    const imageComponent = await readFile(path.join(projectRoot, "client/src/components/ManagedPageImage.tsx"), "utf8");
+    const postSource = await readFile(path.join(projectRoot, "client/src/pages/Post.tsx"), "utf8");
+    const styles = await readFile(path.join(projectRoot, "client/src/index.css"), "utf8");
+
+    expect(imageComponent).toContain('maxWidth: hasSavedSize ? "none" : "100%"');
+    expect(imageComponent).toContain('objectFit: hasSavedSize ? "fill" : "contain"');
+    expect(postSource).toContain("prose-content text-base leading-relaxed tracking-wide");
+    expect(styles).toContain("line-height: 1.625;");
+  });
 });

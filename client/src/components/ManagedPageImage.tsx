@@ -13,14 +13,16 @@ export function getManagedPageImageStyle(
 ): CSSProperties {
   const width = image.displayWidth && image.displayWidth > 0 ? image.displayWidth : null;
   const height = image.displayHeight && image.displayHeight > 0 ? image.displayHeight : fallbackHeight;
+  const hasSavedSize = Boolean(width && image.displayHeight && image.displayHeight > 0);
 
   return {
     width: width ? `${width}px` : "auto",
     height: `${height}px`,
-    maxWidth: "100%",
-    objectFit: "contain",
+    maxWidth: hasSavedSize ? "none" : "100%",
+    objectFit: hasSavedSize ? "fill" : "contain",
     borderRadius: "4px",
     display: "block",
+    flex: "0 0 auto",
   };
 }
 

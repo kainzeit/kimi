@@ -145,3 +145,6 @@
 - [x] Add visual resizing and exact dimension controls to Manage Images entries
 - [x] Render managed page images with their saved dimensions on public Foyer, A Whim, Imagination, Elsewhere, and Knock pages
 - [x] Add regression coverage and verify Manage/public image size consistency at desktop and mobile widths
+- [x] Fix public pages so saved Manage image dimensions are applied without an overriding layout style
+- [x] Reduce public article continuous-text line height while preserving paragraph spacing
+- [x] Verify saved image dimensions and article typography on desktop and mobile public pages
