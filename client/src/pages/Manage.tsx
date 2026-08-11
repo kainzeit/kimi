@@ -346,8 +346,7 @@ export default function Manage() {
     }
   }, [pageContent?.content, activePageKey]);
 
-  const handleCreateArticle = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveArticle = async (isDraft: boolean) => {
     if (!articleForm.slug || !articleForm.title) return;
     const content = articleRichContent || articleForm.content;
     if (!content) return;
@@ -358,6 +357,7 @@ export default function Manage() {
           ...articleForm,
           content,
           publishedAt: articleForm.publishedAt,
+          isDraft,
         });
         setEditingArticleId(null);
       } else {
@@ -366,6 +366,7 @@ export default function Manage() {
           content,
           category: articleCategory,
           publishedAt: articleForm.publishedAt,
+          isDraft,
         });
       }
       setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
@@ -587,7 +588,7 @@ export default function Manage() {
                 + new article
               </button>
             ) : (
-              <form onSubmit={handleCreateArticle} className="max-w-2xl space-y-4 mb-10">
+              <div className="max-w-2xl space-y-4 mb-10">
                 <p className="text-xs text-muted-foreground tracking-wide">
                   {editingArticleId ? "edit article" : `new article in ${articleCategory}`}
                 </p>
@@ -621,14 +622,24 @@ export default function Manage() {
                   placeholder="write your article..."
                 />
                 <div className="flex gap-3">
-                  <Button type="submit" disabled={createArticleMutation.isPending || updateArticleMutation.isPending} size="sm" className="text-xs">
-                    {createArticleMutation.isPending || updateArticleMutation.isPending ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : editingArticleId ? (
-                      "update"
-                    ) : (
-                      "publish"
-                    )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={createArticleMutation.isPending || updateArticleMutation.isPending}
+                    onClick={() => handleSaveArticle(true)}
+                  >
+                    save as draft
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="text-xs"
+                    disabled={createArticleMutation.isPending || updateArticleMutation.isPending}
+                    onClick={() => handleSaveArticle(false)}
+                  >
+                    {editingArticleId ? "update & publish" : "publish"}
                   </Button>
                   <Button
                     type="button"
@@ -645,7 +656,7 @@ export default function Manage() {
                     cancel
                   </Button>
                 </div>
-              </form>
+              </div>
             )}
 
             {articlesLoading ? (
@@ -655,9 +666,14 @@ export default function Manage() {
             ) : (
               <div className="max-w-2xl space-y-4">
                 {visibleArticles.map((article: any) => (
-                    <div key={article.id} className={`flex items-start justify-between py-3 ${article.isHidden ? "opacity-50" : ""}`} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <div key={article.id} className={`flex items-start justify-between py-3 ${article.isHidden || article.isDraft ? "opacity-60" : ""}`} style={{ borderBottom: "1px solid var(--border)" }}>
                     <div>
-                      <p className="text-sm font-semibold">{article.title}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold">{article.title}</p>
+                        {article.isDraft ? (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded tracking-wide">draft</span>
+                        ) : null}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
                         /{articleCategory}/{article.slug} ·{" "}
                         {new Date(article.publishedAt).toLocaleDateString("en-US", {
@@ -667,7 +683,24 @@ export default function Manage() {
                         })}
                       </p>
                     </div>
-                    <div className="flex gap-2 ml-4 mt-0.5">
+                    <div className="flex gap-2 ml-4 mt-0.5 items-center">
+                      <button
+                        onClick={async () => {
+                          const setDraftMutation = trpc.articles.setDraft.useMutation();
+                          // we can use a helper or direct trpc client call in component
+                        }}
+                      />
+                      <button
+                        onClick={async () => {
+                          // toggle draft status
+                          const nextDraft = !article.isDraft;
+                          // direct invoke via trpc utils or mutation
+                        }}
+                        className="text-xs px-2 py-0.5 border rounded text-muted-foreground hover:text-foreground transition"
+                        title={article.isDraft ? "Publish now" : "Convert to draft"}
+                      >
+                        {article.isDraft ? "publish" : "draft"}
+                      </button>
                       <button
                         onClick={() => handleToggleArticleHidden(article)}
                         className="text-muted-foreground hover:text-foreground transition"

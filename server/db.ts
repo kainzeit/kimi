@@ -103,6 +103,7 @@ export async function listArticles(
     const conditions = [eq(articles.category, category as any)];
     if (!options.includeHidden) conditions.push(eq(articles.isHidden, 0 as any));
     if (!options.includeDeleted) conditions.push(isNull(articles.deletedAt));
+    if (!options.includeHidden) conditions.push(eq(articles.isDraft, 0 as any));
     const result = await db
       .select()
       .from(articles)
@@ -126,7 +127,7 @@ export async function getArticleBySlug(slug: string) {
     const result = await db
       .select()
       .from(articles)
-      .where(and(eq(articles.slug, slug), eq(articles.isHidden, 0 as any), isNull(articles.deletedAt)))
+      .where(and(eq(articles.slug, slug), eq(articles.isHidden, 0 as any), eq(articles.isDraft, 0 as any), isNull(articles.deletedAt)))
       .limit(1);
     return result.length > 0 ? result[0] : undefined;
   } catch (error) {
@@ -240,6 +241,7 @@ export async function listImages(
     if (pageKey) conditions.push(eq(images.pageKey, pageKey));
     if (!options.includeHidden) conditions.push(eq(images.isHidden, 0 as any));
     if (!options.includeDeleted) conditions.push(isNull(images.deletedAt));
+    if (!options.includeHidden) conditions.push(eq(images.isDraft, 0 as any));
     const result = await db
       .select()
       .from(images)
@@ -522,5 +524,36 @@ export async function listDeletedImages(pageKey?: string) {
   } catch (error) {
     console.error("[Database] Failed to list deleted images:", error);
     return [];
+  }
+}
+
+
+// Draft / Publish helpers for articles
+export async function setArticleDraft(id: number, isDraft: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(articles)
+      .set({ isDraft: isDraft ? 1 : 0 })
+      .where(eq(articles.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to set article draft status:", error);
+    throw error;
+  }
+}
+
+// Draft / Publish helpers for images
+export async function setImageDraft(id: number, isDraft: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .update(images)
+      .set({ isDraft: isDraft ? 1 : 0 })
+      .where(eq(images.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to set image draft status:", error);
+    throw error;
   }
 }

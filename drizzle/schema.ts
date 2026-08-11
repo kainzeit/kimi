@@ -36,6 +36,7 @@ export const articles = mysqlTable("articles", {
   authorId: int("authorId").notNull(),
   publishedAt: timestamp("publishedAt").defaultNow().notNull(),
   isHidden: tinyint("isHidden").default(0).notNull(),
+  isDraft: tinyint("isDraft").default(0).notNull(),
   deletedAt: timestamp("deletedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -73,6 +74,7 @@ export const images = mysqlTable("images", {
   pageKey: varchar("pageKey", { length: 64 }).default("home").notNull(), // which page this image belongs to
   uploadedBy: int("uploadedBy"),
   isHidden: tinyint("isHidden").default(0).notNull(),
+  isDraft: tinyint("isDraft").default(0).notNull(),
   deletedAt: timestamp("deletedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

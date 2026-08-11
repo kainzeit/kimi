@@ -25,8 +25,14 @@
 - [x] Add recycle bin tab with restore actions for deleted articles and images
 - [x] Filter hidden/deleted content from public article and image listings
 - [x] Add vitest coverage for hide, soft-delete, and restore routes
-- [ ] Make public layout responsive on mobile without changing the desktop composition
-- [ ] Verify public pages and Manage flows at desktop and mobile breakpoints
+- [x] Make public layout responsive on mobile without changing the desktop composition
+- [x] Verify public pages and Manage flows at desktop and mobile breakpoints
 
-- [ ] Add isolated Vitest coverage for article hide, unhide, soft-delete, and restore mutations
-- [ ] Add isolated Vitest coverage for image hide, unhide, soft-delete, and restore mutations
+- [x] Add isolated Vitest coverage for article hide, unhide, soft-delete, and restore mutations
+- [x] Add isolated Vitest coverage for image hide, unhide, soft-delete, and restore mutations
+- [ ] Add `isPublished` or `status` (draft/published) field to `articles` and `images` tables in `drizzle/schema.ts`
+- [ ] Implement database migration and update `server/db.ts` to support draft/publish toggle and filtering
+- [ ] Update tRPC routers in `server/routers.ts` to accept and expose draft/publish status updates
+- [ ] Update `Manage.tsx` article and image editors with "Save as Draft" vs "Publish" buttons / status badges
+- [ ] Filter out draft items from public article and image listings by default
+- [ ] Add Vitest tests for draft/publish mutation and listing contracts

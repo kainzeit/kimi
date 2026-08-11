@@ -4,10 +4,10 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import {
   listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle,
-  hideArticle, unhideArticle, softDeleteArticle, restoreArticle, listDeletedArticles,
+  hideArticle, unhideArticle, softDeleteArticle, restoreArticle, listDeletedArticles, setArticleDraft,
   getPageContent, updatePageContent,
   listImages, deleteImage,
-  hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages,
+  hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages, setImageDraft,
   createAccessLog, listAccessLogs,
   incrementArticleView, listArticleViews,
   getSiteConfig, setSiteConfig,
@@ -48,13 +48,15 @@ export const appRouter = router({
         content: z.string(),
         category: z.enum(["a-whim", "imagination", "elsewhere"]),
         publishedAt: z.string().optional(),
+        isDraft: z.boolean().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { publishedAt, ...rest } = input;
+        const { publishedAt, isDraft, ...rest } = input;
         return createArticle({
           ...rest,
           authorId: 0,
           publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
+          isDraft: isDraft ? 1 : 0,
         });
       }),
 
@@ -64,14 +66,16 @@ export const appRouter = router({
         slug: z.string().optional(),
         title: z.string().optional(),
         content: z.string().optional(),
-        category: z.enum(["a-whim", "imagination"]).optional(),
+        category: z.enum(["a-whim", "imagination", "elsewhere"]).optional(),
         publishedAt: z.string().optional(),
+        isDraft: z.boolean().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { id, publishedAt, ...rest } = input;
+        const { id, publishedAt, isDraft, ...rest } = input;
         return updateArticle(id, {
           ...rest,
           ...(publishedAt ? { publishedAt: new Date(publishedAt) } : {}),
+          ...(isDraft !== undefined ? { isDraft: isDraft ? 1 : 0 } : {}),
         });
       }),
 
@@ -94,6 +98,10 @@ export const appRouter = router({
     restore: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => restoreArticle(input.id)),
+
+    setDraft: publicProcedure
+      .input(z.object({ id: z.number(), isDraft: z.boolean() }))
+      .mutation(async ({ input }) => setArticleDraft(input.id, input.isDraft)),
 
     listDeleted: publicProcedure
       .input(z.object({ category: z.string().optional() }))
@@ -141,6 +149,10 @@ export const appRouter = router({
     restore: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => restoreImage(input.id)),
+
+    setDraft: publicProcedure
+      .input(z.object({ id: z.number(), isDraft: z.boolean() }))
+      .mutation(async ({ input }) => setImageDraft(input.id, input.isDraft)),
 
     listDeleted: publicProcedure
       .input(z.object({ pageKey: z.string().optional() }))
