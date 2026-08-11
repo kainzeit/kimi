@@ -24,13 +24,16 @@ describe("Draft and Publish Functional Verification", () => {
   it("validates draft parameter input schemas on article and image routers", async () => {
     const caller = appRouter.createCaller(createContext());
 
-    // Verify list queries accept includeHidden and filter parameters correctly
-    await expect(
-      caller.articles.list({ category: "a-whim", includeHidden: true }),
-    ).resolves.toBeTypeOf("object");
+    const articles = await caller.articles.list({ category: "a-whim", includeHidden: true });
+    const images = await caller.images.list({ pageKey: "home", includeHidden: true });
 
-    await expect(
-      caller.images.list({ pageKey: "home", includeHidden: true }),
-    ).resolves.toBeTypeOf("object");
+    expect(Array.isArray(articles)).toBe(true);
+    expect(Array.isArray(images)).toBe(true);
+
+    // Verify draft status filter correctness: public listing excludes drafts by default
+    const publicArticles = await caller.articles.list({ category: "a-whim" });
+    for (const article of publicArticles as any[]) {
+      expect(article.isDraft).toBeFalsy();
+    }
   });
 });

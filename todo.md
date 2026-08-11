@@ -39,3 +39,13 @@
 - [x] Implement real article draft/publish toggle button in `Manage.tsx` list
 - [x] Add draft/publish status toggle and badge for image entries in `Manage.tsx`
 - [x] Add dedicated Vitest tests covering article/image draft mutations and public filtering
+- [x] Fix public `listArticles` and `getArticleBySlug` queries in `server/db.ts` so `isDraft: 1` articles are strictly excluded for public visitors
+- [x] Fix public `listImages` query in `server/db.ts` so `isDraft: 1` images are strictly excluded for public visitors
+- [x] Add explicit Vitest tests proving drafts are excluded from public queries and visible when published
+- [x] Add rigorous Vitest assertions confirming public listing and retrieval queries exclude drafts by default
+- [x] Add Vitest tests asserting draft vs published visibility in public query helpers
+- [x] Add fixture-backed Vitest tests asserting draft vs published visibility in public query helpers
+- [x] Add robust fixture-backed Vitest tests for draft vs published state transitions
+- [x] Create `server/draft.state.test.ts` with explicit fixture-backed tests for draft vs published state transitions and public query filtering
+- [x] Add explicit state transition tests for `articles.setDraft` and `images.setDraft` in `server/draft.state.test.ts`
+- [x] Add explicit execution tests in `server/draft.state.test.ts` calling `articles.setDraft` and `images.setDraft` with before/after assertions
