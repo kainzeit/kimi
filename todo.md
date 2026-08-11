@@ -133,3 +133,6 @@
 - [x] Add restore actions and regression coverage for the Article recycle-bin workflow
 - [x] Add focused Vitest coverage for article recycle-bin metadata and restore behavior
 - [x] Add a safe soft-delete and restore state-transition test for Article recycle entries
+- [x] Add a recycle-only permanent article deletion helper and tRPC procedure
+- [x] Add a permanently delete button with an irreversible-action confirmation in Article recycle
+- [x] Add permanent deletion mutation and state-transition regression coverage

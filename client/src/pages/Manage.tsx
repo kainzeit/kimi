@@ -636,6 +636,7 @@ export default function Manage() {
   const unhideArticleMutation = trpc.articles.unhide.useMutation();
   const softDeleteArticleMutation = trpc.articles.softDelete.useMutation();
   const restoreArticleMutation = trpc.articles.restore.useMutation();
+  const permanentlyDeleteArticleMutation = trpc.articles.permanentlyDelete.useMutation();
   const setArticleDraftMutation = trpc.articles.setDraft.useMutation();
   const { data: deletedArticles = [], refetch: refetchDeletedArticles } =
     trpc.articles.listDeleted.useQuery({});
@@ -726,6 +727,17 @@ export default function Manage() {
       await restoreArticleMutation.mutateAsync({ id });
       await refetchArticles();
       await refetchDeletedArticles();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handlePermanentlyDeleteArticle = async (article: any) => {
+    if (!window.confirm(`Permanently delete “${article.title}”? This cannot be undone.`)) return;
+    try {
+      await permanentlyDeleteArticleMutation.mutateAsync({ id: article.id });
+      await refetchDeletedArticles();
+      await refetchArticles();
     } catch (err) {
       console.error(err);
     }
@@ -934,9 +946,20 @@ export default function Manage() {
                             {article.category} · /{article.slug} · deleted {article.deletedAt ? new Date(article.deletedAt).toLocaleDateString("en-US") : "—"}
                           </p>
                         </div>
-                        <Button type="button" variant="outline" size="sm" className="shrink-0 text-xs" onClick={() => handleRestoreArticle(article.id)}>
-                          <RotateCcw className="mr-1 h-3 w-3" /> restore
-                        </Button>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => handleRestoreArticle(article.id)}>
+                            <RotateCcw className="mr-1 h-3 w-3" /> restore
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="border-destructive/40 text-xs text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => handlePermanentlyDeleteArticle(article)}
+                          >
+                            <Trash2 className="mr-1 h-3 w-3" /> permanently delete
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>

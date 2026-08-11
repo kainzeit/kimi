@@ -420,6 +420,20 @@ export async function restoreArticle(id: number) {
   }
 }
 
+// Permanently remove an article only after it has entered the recycle bin.
+export async function permanentlyDeleteArticle(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db
+      .delete(articles)
+      .where(and(eq(articles.id, id), isNotNull(articles.deletedAt)));
+  } catch (error) {
+    console.error("[Database] Failed to permanently delete article:", error);
+    throw error;
+  }
+}
+
 // List deleted articles (recycle bin)
 export async function listDeletedArticles(category?: string) {
   const db = await getDb();

@@ -4,7 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import {
   listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle,
-  hideArticle, unhideArticle, softDeleteArticle, restoreArticle, listDeletedArticles, setArticleDraft,
+  hideArticle, unhideArticle, softDeleteArticle, restoreArticle, permanentlyDeleteArticle, listDeletedArticles, setArticleDraft,
   getPageContent, updatePageContent,
   listImages, deleteImage,
   hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages, setImageDraft,
@@ -98,6 +98,10 @@ export const appRouter = router({
     restore: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => restoreArticle(input.id)),
+
+    permanentlyDelete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => permanentlyDeleteArticle(input.id)),
 
     setDraft: publicProcedure
       .input(z.object({ id: z.number(), isDraft: z.boolean() }))
