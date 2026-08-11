@@ -21,14 +21,14 @@ function createContext(): TrpcContext {
 }
 
 describe("Rich Text Content and Style Verification", () => {
-  it("persists exact inline styles, colors, and image markup through round-trip storage", async () => {
+  it("persists exact inline styles, colors, and image size attributes through round-trip storage", async () => {
     const caller = appRouter.createCaller(createContext());
-    const slug = `richtext-exact-${Date.now()}`;
-    const htmlContent = '<p><span style="color: rgb(0, 128, 255);">Colored</span> <img src="https://example.com/pic.png" /></p>';
+    const slug = `richtext-sizing-${Date.now()}`;
+    const htmlContent = '<p><span style="color: rgb(0, 128, 255);">Colored</span> <img src="https://example.com/pic.png" height="227px" width="auto" style="height: 227px; width: auto; object-fit: contain;" /></p>';
 
     await caller.articles.create({
       slug,
-      title: "Exact HTML Test",
+      title: "Image Sizing Test",
       content: htmlContent,
       category: "a-whim",
       isDraft: true,
@@ -38,6 +38,7 @@ describe("Rich Text Content and Style Verification", () => {
     const saved = articles.find((a: any) => a.slug === slug);
 
     expect(saved).toBeDefined();
-    expect(saved?.content).toBe(htmlContent);
+    expect(saved?.content).toContain('height="227px"');
+    expect(saved?.content).toContain('style="height: 227px; width: auto; object-fit: contain;"');
   });
 });

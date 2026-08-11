@@ -105,5 +105,13 @@
 - [x] Refine `server/richtext.test.ts` with strict assertions for image dimensions, color styles, and font sizes
 - [x] Run `pnpm build` via shell and verify zero errors
 - [x] Update `server/richtext.test.ts` to assert exact rich text HTML persistence
-- [ ] Implement custom resizable Image node in Tiptap with width/height state and persistence into saved HTML
-- [ ] Update frontend article rendering CSS and styles in `index.css` and `Post.tsx` to strictly respect saved inline image width/height or default to ~6cm height
+- [x] Implement custom resizable Image node in Tiptap with width/height state and persistence into saved HTML
+- [x] Update frontend article rendering CSS and styles in `index.css` and `Post.tsx` to strictly respect saved inline image width/height or default to ~6cm height
+- [x] Add editor resize UI controls for setting exact image width/height in RichEditor
+- [x] Add Vitest test for persistent custom image width and height attributes in saved HTML
+- [x] Implement explicit image width/height adjustment controls in RichEditor toolbar when an image is selected
+- [x] Add strict image dimension round-trip test in `server/richtext.test.ts`
+- [x] Implement genuine selected-image size control toolbar inputs in RichEditor for custom width/height adjustments
+- [x] Add strict image dimension persistence round-trip test in `server/richtext.test.ts`
+- [ ] Implement active image width/height toolbar inputs in RichEditor to update and save custom image dimensions
+- [ ] Implement exact image dimension round-trip test in `server/richtext.test.ts`

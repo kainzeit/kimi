@@ -217,6 +217,58 @@ function RichEditor({
         >
           <span>🌐 img</span>
         </button>
+        {editor.isActive("image") && (
+          <>
+            <div className="w-px bg-border mx-1" />
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-muted-foreground">Size:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const attrs = editor.getAttributes("image");
+                  editor.chain().focus().updateAttributes("image", { width: "auto", height: "150px" }).run();
+                }}
+                className="px-1.5 py-0.5 bg-muted rounded hover:bg-foreground hover:text-background transition"
+                title="Small height (~4cm)"
+              >
+                S
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().updateAttributes("image", { width: "auto", height: "227px" }).run();
+                }}
+                className="px-1.5 py-0.5 bg-muted rounded hover:bg-foreground hover:text-background transition"
+                title="Default height (~6cm)"
+              >
+                M
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().updateAttributes("image", { width: "auto", height: "380px" }).run();
+                }}
+                className="px-1.5 py-0.5 bg-muted rounded hover:bg-foreground hover:text-background transition"
+                title="Large height (~10cm)"
+              >
+                L
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const customH = window.prompt("Enter image height in px (e.g. 200px) or width (e.g. 400px):", "227px");
+                  if (customH) {
+                    editor.chain().focus().updateAttributes("image", { height: customH }).run();
+                  }
+                }}
+                className="px-1.5 py-0.5 bg-muted rounded hover:bg-foreground hover:text-background transition text-xs"
+                title="Custom size"
+              >
+                custom
+              </button>
+            </div>
+          </>
+        )}
       </div>
       <EditorContent editor={editor} />
     </div>
