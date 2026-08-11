@@ -1,5 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { ManagedPageImage, type ManagedPageImageData } from "@/components/ManagedPageImage";
 import { Link } from "wouter";
 
 const CONTENT_TOP = "169px";
@@ -62,13 +63,8 @@ export default function Elsewhere() {
       {/* Images: right of content, 5cm height with proportional width */}
       {(images as any[]).length > 0 && (
         <div className="public-image-column flex flex-col gap-4 shrink-0">
-          {(images as any[]).map((image) => (
-            <img
-              key={image.id}
-              src={image.url}
-              alt=""
-              style={{ height: IMG_SIZE, width: "auto", objectFit: "contain", borderRadius: "4px" }}
-            />
+          {(images as ManagedPageImageData[]).map((image) => (
+            <ManagedPageImage key={image.id} image={image} fallbackHeight={189} />
           ))}
         </div>
       )}

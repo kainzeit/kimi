@@ -140,3 +140,8 @@
 - [x] Close the mobile navigation automatically after choosing a section or article
 - [x] Make public article detail pages use the full available mobile viewport width without sidebar space or horizontal overflow
 - [x] Verify the mobile navigation and article reading experience at a 375px viewport while preserving the desktop sidebar layout
+- [x] Add persistent width and height fields for managed page images
+- [x] Add an image-dimension update procedure and database helper
+- [x] Add visual resizing and exact dimension controls to Manage Images entries
+- [x] Render managed page images with their saved dimensions on public Foyer, A Whim, Imagination, Elsewhere, and Knock pages
+- [x] Add regression coverage and verify Manage/public image size consistency at desktop and mobile widths

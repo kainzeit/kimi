@@ -1,5 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { ManagedPageImage, type ManagedPageImageData } from "@/components/ManagedPageImage";
 
 export default function Home() {
   const { data: images = [], isLoading } = trpc.images.list.useQuery({ pageKey: "home" });
@@ -15,15 +16,8 @@ export default function Home() {
         <div />
       ) : (
         <div className="flex flex-wrap gap-4">
-          {(images as { id: number; url: string }[]).map((image) => (
-            <div key={image.id} style={{ width: "auto", height: "189px", flexShrink: 0 }}>
-              <img
-                src={image.url}
-                alt=""
-                style={{ height: "189px", width: "auto", objectFit: "contain" }}
-                className="rounded"
-              />
-            </div>
+          {(images as ManagedPageImageData[]).map((image) => (
+            <ManagedPageImage key={image.id} image={image} fallbackHeight={189} className="rounded" />
           ))}
         </div>
       )}

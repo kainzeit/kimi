@@ -1,5 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { ManagedPageImage, type ManagedPageImageData } from "@/components/ManagedPageImage";
 
 const DEFAULT_CONTENT = `just a regular person
 likes building stuff, makes little apps here and there
@@ -53,13 +54,8 @@ export default function Foyer() {
       {/* Images: float to the right of text, 5cm height with proportional width */}
       {(images as any[]).length > 0 && (
         <div className="public-image-column flex flex-col gap-4 shrink-0">
-          {(images as any[]).map((image) => (
-            <img
-              key={image.id}
-              src={image.url}
-              alt=""
-              style={{ height: IMG_SIZE, width: "auto", objectFit: "contain", borderRadius: "4px" }}
-            />
+          {(images as ManagedPageImageData[]).map((image) => (
+            <ManagedPageImage key={image.id} image={image} fallbackHeight={189} />
           ))}
         </div>
       )}

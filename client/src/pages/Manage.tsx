@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw, Maximize2 } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -394,6 +394,188 @@ type Section = "articles" | "pages" | "images" | "dashboard" | "greeting" | "rec
 type PageKey = "foyer" | "knock" | "imagination_intro";
 type Category = "a-whim" | "imagination" | "elsewhere";
 
+const DEFAULT_PAGE_IMAGE_HEIGHT = 189;
+
+function clampImageDimension(value: number) {
+  return Math.min(2400, Math.max(48, Math.round(value)));
+}
+
+function PageImageSizeEditor({
+  image,
+  onSave,
+  onClose,
+  isSaving,
+}: {
+  image: { id: number; url: string; pageKey: string; displayWidth?: number | null; displayHeight?: number | null };
+  onSave: (displayWidth: number | null, displayHeight: number | null) => Promise<void>;
+  onClose: () => void;
+  isSaving: boolean;
+}) {
+  const [width, setWidth] = useState(image.displayWidth ?? 0);
+  const [height, setHeight] = useState(image.displayHeight ?? DEFAULT_PAGE_IMAGE_HEIGHT);
+  const [aspectRatio, setAspectRatio] = useState(1);
+  const [keepAspectRatio, setKeepAspectRatio] = useState(true);
+
+  useEffect(() => {
+    setWidth(image.displayWidth ?? 0);
+    setHeight(image.displayHeight ?? DEFAULT_PAGE_IMAGE_HEIGHT);
+    setAspectRatio(1);
+  }, [image.id, image.displayWidth, image.displayHeight]);
+
+  const changeWidth = (nextWidth: number) => {
+    const normalizedWidth = clampImageDimension(nextWidth);
+    setWidth(normalizedWidth);
+    if (keepAspectRatio && aspectRatio > 0) {
+      setHeight(clampImageDimension(normalizedWidth / aspectRatio));
+    }
+  };
+
+  const changeHeight = (nextHeight: number) => {
+    const normalizedHeight = clampImageDimension(nextHeight);
+    setHeight(normalizedHeight);
+    if (keepAspectRatio && aspectRatio > 0) {
+      setWidth(clampImageDimension(normalizedHeight * aspectRatio));
+    }
+  };
+
+  const startResize = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startWidth = width || Math.round(height * aspectRatio);
+    const startHeight = height;
+
+    const onMove = (moveEvent: PointerEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      if (keepAspectRatio && aspectRatio > 0) {
+        const widthFromPointer = startWidth + (Math.abs(deltaX) >= Math.abs(deltaY) ? deltaX : deltaY * aspectRatio);
+        const nextWidth = clampImageDimension(widthFromPointer);
+        setWidth(nextWidth);
+        setHeight(clampImageDimension(nextWidth / aspectRatio));
+      } else {
+        setWidth(clampImageDimension(startWidth + deltaX));
+        setHeight(clampImageDimension(startHeight + deltaY));
+      }
+    };
+
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  const previewWidth = width || Math.round(height * aspectRatio);
+
+  return (
+    <div className="mt-8 max-w-3xl rounded-lg p-5" style={{ border: "1px solid var(--border)" }}>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-semibold tracking-wide">resize image</h3>
+          <p className="mt-1 text-xs leading-relaxed tracking-wide text-muted-foreground">
+            drag the lower-right handle or enter an exact width and height. saved dimensions are used on the public {image.pageKey} page.
+          </p>
+        </div>
+        <button type="button" onClick={onClose} className="p-1 text-muted-foreground transition hover:text-foreground" title="Close resize panel">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="mb-5 overflow-hidden rounded-md bg-muted/40 p-4" style={{ border: "1px solid var(--border)" }}>
+        <div className="relative inline-block max-w-full">
+          <img
+            src={image.url}
+            alt="Image size preview"
+            onLoad={(event) => {
+              const { naturalWidth, naturalHeight } = event.currentTarget;
+              if (!naturalWidth || !naturalHeight) return;
+              const ratio = naturalWidth / naturalHeight;
+              setAspectRatio(ratio);
+              if (!width) setWidth(clampImageDimension(height * ratio));
+            }}
+            style={{
+              width: `${previewWidth}px`,
+              height: `${height}px`,
+              maxWidth: "100%",
+              objectFit: "contain",
+              borderRadius: "4px",
+              display: "block",
+            }}
+          />
+          <button
+            type="button"
+            onPointerDown={startResize}
+            className="absolute bottom-1 right-1 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded-sm bg-background/90 text-foreground shadow-sm transition hover:bg-background"
+            title="Drag to resize"
+            aria-label="Drag to resize image"
+          >
+            <Maximize2 className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="space-y-1">
+          <span className="block text-xs tracking-wide text-muted-foreground">width (px)</span>
+          <Input
+            type="number"
+            min={48}
+            max={2400}
+            value={previewWidth}
+            onChange={(event) => changeWidth(Number(event.target.value) || 48)}
+            className="h-8 w-24 text-xs"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="block text-xs tracking-wide text-muted-foreground">height (px)</span>
+          <Input
+            type="number"
+            min={48}
+            max={2400}
+            value={height}
+            onChange={(event) => changeHeight(Number(event.target.value) || 48)}
+            className="h-8 w-24 text-xs"
+          />
+        </label>
+        <label className="mb-1 flex items-center gap-2 text-xs tracking-wide text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={keepAspectRatio}
+            onChange={(event) => setKeepAspectRatio(event.target.checked)}
+          />
+          keep proportions
+        </label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="text-xs"
+          disabled={isSaving}
+          onClick={async () => {
+            await onSave(null, null);
+          }}
+        >
+          use default 5cm height
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          className="text-xs"
+          disabled={isSaving}
+          onClick={async () => {
+            await onSave(previewWidth, height);
+          }}
+        >
+          {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "save size"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ---- Dashboard Section ----
 function DashboardSection() {
   const { data: accessLogs = [], isLoading: logsLoading } = trpc.admin.accessLogs.useQuery({ limit: 100 });
@@ -625,6 +807,7 @@ export default function Manage() {
   const [editingContent, setEditingContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [savingPage, setSavingPage] = useState(false);
+  const [sizingImageId, setSizingImageId] = useState<number | null>(null);
 
   // Articles
   const { data: articles = [], isLoading: articlesLoading, refetch: refetchArticles } =
@@ -656,6 +839,7 @@ export default function Manage() {
   const softDeleteImageMutation = trpc.images.softDelete.useMutation();
   const restoreImageMutation = trpc.images.restore.useMutation();
   const setImageDraftMutation = trpc.images.setDraft.useMutation();
+  const updateImageDimensionsMutation = trpc.images.updateDimensions.useMutation();
   const { data: deletedImages = [], refetch: refetchDeletedImages } =
     trpc.images.listDeleted.useQuery({});
 
@@ -817,8 +1001,23 @@ export default function Manage() {
     }
   };
 
+  const handleSaveImageDimensions = async (
+    id: number,
+    displayWidth: number | null,
+    displayHeight: number | null,
+  ) => {
+    try {
+      await updateImageDimensionsMutation.mutateAsync({ id, displayWidth, displayHeight });
+      await refetchImages();
+      setSizingImageId(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const visibleArticles = (articles as any[]).filter((article: any) => !article.deletedAt);
   const visibleImages = (images as any[]).filter((image: any) => !image.deletedAt);
+  const sizingImage = visibleImages.find((image: any) => image.id === sizingImageId);
 
   const navBtn = (s: Section, label: string) => (
     <button
@@ -1197,6 +1396,14 @@ export default function Manage() {
                         {image.isHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                       </button>
                       <button
+                        type="button"
+                        onClick={() => setSizingImageId(image.id)}
+                        title="Resize image"
+                        className="p-1 bg-background/80 rounded hover:bg-muted"
+                      >
+                        <Maximize2 className="w-3 h-3" />
+                      </button>
+                      <button
                         onClick={() => handleDeleteImage(image.id)}
                         title="Move to recycle"
                         className="p-1 bg-background/80 rounded hover:bg-destructive hover:text-white"
@@ -1207,6 +1414,16 @@ export default function Manage() {
                   </div>
                 ))}
               </div>
+            )}
+            {sizingImage && (
+              <PageImageSizeEditor
+                image={sizingImage}
+                onClose={() => setSizingImageId(null)}
+                onSave={(displayWidth, displayHeight) =>
+                  handleSaveImageDimensions(sizingImage.id, displayWidth, displayHeight)
+                }
+                isSaving={updateImageDimensionsMutation.isPending}
+              />
             )}
           </div>
         )}

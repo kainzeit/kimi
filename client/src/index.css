@@ -327,6 +327,12 @@
   .public-content-layout > .public-image-column img {
     max-width: 100%;
   }
+
+  .public-content-layout .managed-page-image,
+  .public-home-layout .managed-page-image {
+    height: auto !important;
+    max-width: 100% !important;
+  }
 }
 
 .public-home-layout {

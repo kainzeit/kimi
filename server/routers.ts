@@ -7,7 +7,7 @@ import {
   hideArticle, unhideArticle, softDeleteArticle, restoreArticle, permanentlyDeleteArticle, listDeletedArticles, setArticleDraft,
   getPageContent, updatePageContent,
   listImages, deleteImage,
-  hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages, setImageDraft,
+  hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages, setImageDraft, updateImageDimensions,
   createAccessLog, listAccessLogs,
   incrementArticleView, listArticleViews,
   getSiteConfig, setSiteConfig,
@@ -157,6 +157,14 @@ export const appRouter = router({
     setDraft: publicProcedure
       .input(z.object({ id: z.number(), isDraft: z.boolean() }))
       .mutation(async ({ input }) => setImageDraft(input.id, input.isDraft)),
+
+    updateDimensions: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        displayWidth: z.number().int().min(48).max(2400).nullable(),
+        displayHeight: z.number().int().min(48).max(2400).nullable(),
+      }))
+      .mutation(async ({ input }) => updateImageDimensions(input.id, input.displayWidth, input.displayHeight)),
 
     listDeleted: publicProcedure
       .input(z.object({ pageKey: z.string().optional() }))

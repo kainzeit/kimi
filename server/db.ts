@@ -269,6 +269,27 @@ export async function createImage(data: InsertImage) {
   }
 }
 
+export async function updateImageDimensions(
+  id: number,
+  displayWidth: number | null,
+  displayHeight: number | null,
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db
+      .update(images)
+      .set({ displayWidth, displayHeight })
+      .where(eq(images.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to update image dimensions:", error);
+    throw error;
+  }
+}
+
 export async function deleteImage(id: number) {
   const db = await getDb();
   if (!db) {

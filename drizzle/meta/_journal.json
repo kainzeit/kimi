@@ -64,6 +64,13 @@
       "when": 1786477324509,
       "tag": "0008_confused_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1786484518078,
+      "tag": "0009_massive_havok",
+      "breakpoints": true
     }
   ]
 }

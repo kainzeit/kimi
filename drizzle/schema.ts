@@ -72,6 +72,8 @@ export const images = mysqlTable("images", {
   url: varchar("url", { length: 512 }).notNull(),
   fileKey: varchar("fileKey", { length: 255 }).notNull().unique(),
   pageKey: varchar("pageKey", { length: 64 }).default("home").notNull(), // which page this image belongs to
+  displayWidth: int("displayWidth"),
+  displayHeight: int("displayHeight"),
   uploadedBy: int("uploadedBy"),
   isHidden: tinyint("isHidden").default(0).notNull(),
   isDraft: tinyint("isDraft").default(0).notNull(),
