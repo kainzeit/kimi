@@ -37,9 +37,12 @@ try {
   if (desktopLayout.gridDirection !== "column-reverse") throw new Error(JSON.stringify(desktopLayout));
   if (desktopLayout.rowDirection !== "rtl") throw new Error(JSON.stringify(desktopLayout));
   if (desktopLayout.centers.length >= 2 && desktopLayout.centers[0] <= desktopLayout.centers[1]) {
-    throw new Error(`Newest entry is not on the right: ${JSON.stringify(desktopLayout)}`);
+    throw new Error(`Earliest entry is not on the right: ${JSON.stringify(desktopLayout)}`);
   }
-  if (desktopLayout.imageSizes.some(({ width, height }) => width <= 0 || height < 301 || height > 303)) {
+  if (desktopLayout.dates.length >= 2 && new Date(desktopLayout.dates[0]).getTime() >= new Date(desktopLayout.dates[1]).getTime()) {
+    throw new Error(`Desktop row is not earliest-to-latest from right to left: ${JSON.stringify(desktopLayout)}`);
+  }
+  if (desktopLayout.imageSizes.some(({ width, height }) => width <= 0 || height < 264 || height > 266)) {
     throw new Error(`Unexpected proportional thumbnail size: ${JSON.stringify(desktopLayout)}`);
   }
   await page.screenshot({ path: "/home/ubuntu/screenshots/elsewhere-grid-desktop.png", fullPage: true });

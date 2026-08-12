@@ -225,3 +225,7 @@
 - [x] Arrange Elsewhere entries in two-column rows with 8cm proportional thumbnails, newest at the bottom-right moving leftward
 - [x] Verify Elsewhere mobile fallback remains single-column without horizontal overflow
 - [x] Run regression tests and browser visual checks for the Elsewhere grid
+
+- [ ] Adjust Elsewhere thumbnail height to 7cm (~265px)
+- [ ] Implement Z-shaped grid flow starting from the earliest entry at the bottom-right, moving left, then up to the next row (bottom-to-top, right-to-left zigzag)
+- [ ] Verify desktop and mobile layouts and run regression tests for the updated Elsewhere grid

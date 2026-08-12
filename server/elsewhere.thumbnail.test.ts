@@ -19,7 +19,7 @@ describe("Elsewhere article thumbnail extraction", () => {
 
     expect(source).toContain("getFirstRichTextImageSrc(article.content)");
     expect(source).toContain('href={`/elsewhere/${article.slug}`}');
-    expect(source).toContain(".sort((first, second)");
+    expect(source).toContain(".sort((first, second) => new Date(first.publishedAt).getTime() - new Date(second.publishedAt).getTime())");
     expect(source).toContain('text-[11px]');
     expect(source).toContain("text-[#719199]");
     expect(source).toContain("getPreview(article.content)");
@@ -27,7 +27,7 @@ describe("Elsewhere article thumbnail extraction", () => {
     expect(source).toContain("entryRows");
     expect(source).toContain("elsewhere-grid");
     expect(source).toContain("elsewhere-grid-row");
-    expect(source).toContain("h-[302px]");
+    expect(source).toContain("h-[265px]");
     expect(source).not.toContain("object-cover");
   });
 });

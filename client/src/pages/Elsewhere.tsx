@@ -21,7 +21,7 @@ export default function Elsewhere() {
   const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "elsewhere" });
   const sortedArticles = (articles || [])
     .map((article) => ({ ...article, imageSrc: getFirstRichTextImageSrc(article.content) }))
-    .sort((first, second) => new Date(second.publishedAt).getTime() - new Date(first.publishedAt).getTime());
+    .sort((first, second) => new Date(first.publishedAt).getTime() - new Date(second.publishedAt).getTime());
   const entryRows = Array.from({ length: Math.ceil(sortedArticles.length / 2) }, (_, rowIndex) =>
     sortedArticles.slice(rowIndex * 2, rowIndex * 2 + 2),
   );
@@ -52,7 +52,7 @@ export default function Elsewhere() {
                         <img
                           src={article.imageSrc}
                           alt={article.title || "Elsewhere entry"}
-                          className="elsewhere-thumbnail block h-[302px] w-auto max-w-full rounded object-contain transition-opacity hover:opacity-80"
+                          className="elsewhere-thumbnail block h-[265px] w-auto max-w-full rounded object-contain transition-opacity hover:opacity-80"
                         />
                       </Link>
                     )}
