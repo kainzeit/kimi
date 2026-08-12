@@ -2,10 +2,11 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import {
   listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle,
   hideArticle, unhideArticle, softDeleteArticle, restoreArticle, permanentlyDeleteArticle, listDeletedArticles, setArticleDraft,
-  batchUpdateArticles, getArticleForManage, saveArticleAutosave, getArticleAutosave, clearArticleAutosave,
+  batchUpdateArticles, getArticleForManage, getArticleBySlugForManage, saveArticleAutosave, getArticleAutosave, clearArticleAutosave,
   getPageContent, updatePageContent,
   listImages, deleteImage,
   hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages, setImageDraft, updateImageDimensions,
@@ -15,6 +16,17 @@ import {
 } from "./db";
 import { articlesToMarkdown } from "./articleMarkdown";
 import { z } from "zod";
+
+async function assertArticleSlugAvailable(slug: string, excludeArticleId?: number) {
+  const existing = await getArticleBySlugForManage(slug);
+  if (!existing || existing.id === excludeArticleId) return;
+
+  const type = existing.isDraft ? "draft" : "article";
+  throw new TRPCError({
+    code: "CONFLICT",
+    message: `The link “${slug}” is already used by an ${existing.category} ${type}. Choose another link or edit the existing entry.`,
+  });
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -54,6 +66,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const { publishedAt, isDraft, ...rest } = input;
+        await assertArticleSlugAvailable(rest.slug);
         return createArticle({
           ...rest,
           authorId: 0,
@@ -74,6 +87,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const { id, publishedAt, isDraft, ...rest } = input;
+        if (rest.slug) await assertArticleSlugAvailable(rest.slug, id);
         return updateArticle(id, {
           ...rest,
           ...(publishedAt ? { publishedAt: new Date(publishedAt) } : {}),
@@ -153,6 +167,7 @@ export const appRouter = router({
         };
 
         if (!input.id) {
+          await assertArticleSlugAvailable(payload.slug);
           const result = await createArticle({ ...payload, authorId: 0, isDraft: 1 });
           return { mode: "draft-created" as const, articleId: Number((result as { insertId?: number }).insertId) };
         }
@@ -160,6 +175,7 @@ export const appRouter = router({
         const article = await getArticleForManage(input.id);
         if (!article) throw new Error("Article not found");
         if (article.isDraft) {
+          await assertArticleSlugAvailable(payload.slug, input.id);
           await updateArticle(input.id, { ...payload, isDraft: 1 });
           return { mode: "draft-updated" as const, articleId: input.id };
         }

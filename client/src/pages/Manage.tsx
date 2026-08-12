@@ -838,6 +838,7 @@ export default function Manage() {
   const today = new Date().toISOString().split("T")[0];
   const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "", publishedAt: today });
   const [articleRichContent, setArticleRichContent] = useState("");
+  const [articleSaveError, setArticleSaveError] = useState<string | null>(null);
   const [articleBaseline, setArticleBaseline] = useState("");
   const [pageBaseline, setPageBaseline] = useState("");
   const [pageDirty, setPageDirty] = useState(false);
@@ -915,6 +916,7 @@ export default function Manage() {
     setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
     setArticleRichContent("");
     setArticleBaseline("");
+    setArticleSaveError(null);
     setAutosaveStatus("idle");
   };
 
@@ -967,6 +969,7 @@ export default function Manage() {
       setAutosaveStatus("saved");
     } catch (err) {
       console.error("Autosave failed:", err);
+      setArticleSaveError(err instanceof Error ? err.message : "Autosave could not save this article.");
       setAutosaveStatus("error");
     }
   };
@@ -1004,6 +1007,7 @@ export default function Manage() {
       content,
       publishedAt: articleForm.publishedAt,
     };
+    setArticleSaveError(null);
     try {
       if (editingArticleId) {
         await updateArticleMutation.mutateAsync({
@@ -1023,6 +1027,7 @@ export default function Manage() {
       refetchArticles();
     } catch (err) {
       console.error(err);
+      setArticleSaveError(err instanceof Error ? err.message : "This article could not be saved. Please try again.");
     }
   };
 
@@ -1386,12 +1391,20 @@ export default function Manage() {
                   {editingArticleId ? "edit article" : `new article in ${articleCategory}`}
                   {autosaveStatus === "saving" ? " · saving draft…" : autosaveStatus === "saved" ? " · draft saved" : autosaveStatus === "error" ? " · autosave failed" : ""}
                 </p>
+                {articleSaveError && (
+                  <p role="alert" className="text-xs leading-relaxed text-destructive">
+                    {articleSaveError}
+                  </p>
+                )}
                 {!isAWhimCategory && (
                   <>
                     <Input
                       placeholder="slug (e.g., my-first-post)"
                       value={articleForm.slug}
-                      onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
+                      onChange={(e) => {
+                        setArticleForm({ ...articleForm, slug: e.target.value });
+                        setArticleSaveError(null);
+                      }}
                       required
                       className="text-sm"
                     />

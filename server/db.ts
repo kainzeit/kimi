@@ -136,6 +136,19 @@ export async function getArticleBySlug(slug: string) {
   }
 }
 
+export async function getArticleBySlugForManage(slug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  try {
+    const result = await db.select().from(articles).where(eq(articles.slug, slug)).limit(1);
+    return result[0];
+  } catch (error) {
+    console.error("[Database] Failed to check article slug for Manage:", error);
+    throw error;
+  }
+}
+
 export async function createArticle(data: InsertArticle) {
   const db = await getDb();
   if (!db) {

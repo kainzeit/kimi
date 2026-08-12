@@ -213,3 +213,7 @@
 - [x] Replace Elsewhere silent thumbnails with reverse-chronological date, first image, and first-sentence entries
 - [x] Reuse 11px gray date styling and remove thumbnail cropping through proportional scaling
 - [x] Verify date ordering, detail navigation, and responsive blog-like Elsewhere layout
+
+- [x] Detect duplicate article slugs before database insertion and return a clear conflict error
+- [x] Display a helpful duplicate-slug message in Manage instead of raw database mutation output
+- [x] Add regression coverage for duplicate slug creation and successful unique-slug creation
