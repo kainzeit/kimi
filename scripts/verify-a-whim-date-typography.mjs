@@ -63,11 +63,12 @@ try {
     : null;
 
   if (
-    whimListTypography.fontSize !== "10px" ||
+    whimListTypography.fontSize !== "11px" ||
     whimListTypography.fontWeight !== "400" ||
-    whimListTypography.color === "rgb(35, 35, 35)" ||
-    whimDetailTypography.fontSize !== "10px" ||
+    whimListTypography.color !== "rgb(113, 145, 153)" ||
+    whimDetailTypography.fontSize !== "11px" ||
     whimDetailTypography.fontWeight !== "400" ||
+    whimDetailTypography.color !== "rgb(113, 145, 153)" ||
     imaginationListTypography.fontWeight === "400" ||
     imaginationDetailTypography.fontWeight === "400" ||
     (elsewhereListTypography && elsewhereListTypography.fontWeight === "400") ||

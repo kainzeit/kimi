@@ -165,3 +165,10 @@
 - [x] Tighten the spacing between A Whim dates and their preview/body content
 - [x] Verify the 10px date styling and confirm other article categories remain unchanged
 
+- [x] Set A Whim dates to 11px on list, detail, and preview views
+- [x] Apply the user-selected date color from the three proposed website-compatible options
+- [x] Verify the 11px date hierarchy and selected color without changing other article categories
+
+- [x] Apply the user-selected #719199 color to A Whim dates across list, detail, and preview views
+- [x] Verify #719199 rendering, 11px hierarchy, and other article category typography
+

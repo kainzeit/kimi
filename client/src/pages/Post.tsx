@@ -87,7 +87,7 @@ export default function Post() {
               </p>
             )}
             <div className={`article-title-row ${isAWhim ? "a-whim-title-row" : ""}`}>
-              <h1 className={isAWhim ? "text-[10px] font-normal text-muted-foreground leading-tight a-whim-date-heading" : "text-2xl font-bold"}>
+              <h1 className={isAWhim ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"}>
                 {isAWhim
                   ? new Date(article.publishedAt).toLocaleDateString("en-US", {
                       year: "numeric",
