@@ -786,6 +786,7 @@ function ArticlePreview({
 }) {
   const isHtml = content.trim().startsWith("<");
   const isAWhim = category === "a-whim";
+  const isTitleless = isAWhim || category === "elsewhere";
   const displayDate = publishedAt
     ? new Date(`${publishedAt}T12:00:00`).toLocaleDateString("en-US", {
         year: "numeric",
@@ -805,9 +806,9 @@ function ArticlePreview({
       <div className="public-post-layout mx-auto max-w-4xl">
         <p className="mb-8 inline-block text-xs tracking-wide text-muted-foreground">← {category}</p>
         <article className="max-w-xl">
-          {!isAWhim && <p className="mb-4 text-xs tracking-wide text-muted-foreground">{displayDate}</p>}
-          <h1 className={`mb-3 ${isAWhim ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"}`}>
-            {isAWhim ? displayDate : title || "untitled article"}
+          {!isTitleless && <p className="mb-4 text-xs tracking-wide text-muted-foreground">{displayDate}</p>}
+          <h1 className={`mb-3 ${isTitleless ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"}`}>
+            {isTitleless ? displayDate : title || "untitled article"}
           </h1>
           {isHtml ? (
             <div className="prose-content text-base leading-loose tracking-wide" dangerouslySetInnerHTML={{ __html: content }} />
@@ -849,6 +850,7 @@ export default function Manage() {
   const [savingPage, setSavingPage] = useState(false);
   const [sizingImageId, setSizingImageId] = useState<number | null>(null);
   const isAWhimCategory = articleCategory === "a-whim";
+  const isTitlelessArticleCategory = isAWhimCategory || articleCategory === "elsewhere";
   const formatWhimDate = (value: string) =>
     new Date(`${value}T12:00:00`).toLocaleDateString("en-US", {
       year: "numeric",
@@ -949,8 +951,8 @@ export default function Manage() {
     if (!content.trim()) return;
 
     const internalSlug = articleForm.slug || `whim-${articleForm.publishedAt.replaceAll("-", "")}-${Date.now().toString(36)}`;
-    const internalTitle = isAWhimCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim();
-    if (!isAWhimCategory && (!internalSlug || !internalTitle)) return;
+    const internalTitle = isTitlelessArticleCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim();
+    if (!internalSlug || !internalTitle) return;
 
     setAutosaveStatus("saving");
     try {
@@ -996,8 +998,8 @@ export default function Manage() {
 
   const handleSaveArticle = async (isDraft: boolean) => {
     const internalSlug = articleForm.slug || `whim-${articleForm.publishedAt.replaceAll("-", "")}-${Date.now().toString(36)}`;
-    const internalTitle = isAWhimCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim();
-    if (!isAWhimCategory && (!internalSlug || !internalTitle)) return;
+    const internalTitle = isTitlelessArticleCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim();
+    if (!internalSlug || !internalTitle) return;
     const content = articleRichContent || articleForm.content;
     if (!content) return;
     const articlePayload = {
@@ -1397,25 +1399,25 @@ export default function Manage() {
                   </p>
                 )}
                 {!isAWhimCategory && (
-                  <>
-                    <Input
-                      placeholder="slug (e.g., my-first-post)"
-                      value={articleForm.slug}
-                      onChange={(e) => {
-                        setArticleForm({ ...articleForm, slug: e.target.value });
-                        setArticleSaveError(null);
-                      }}
-                      required
-                      className="text-sm"
-                    />
-                    <Input
-                      placeholder="title"
-                      value={articleForm.title}
-                      onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
-                      required
-                      className="text-sm"
-                    />
-                  </>
+                  <Input
+                    placeholder="slug (e.g., my-first-post)"
+                    value={articleForm.slug}
+                    onChange={(e) => {
+                      setArticleForm({ ...articleForm, slug: e.target.value });
+                      setArticleSaveError(null);
+                    }}
+                    required
+                    className="text-sm"
+                  />
+                )}
+                {!isTitlelessArticleCategory && (
+                  <Input
+                    placeholder="title"
+                    value={articleForm.title}
+                    onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
                 )}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground tracking-wide">date</label>
@@ -1426,9 +1428,9 @@ export default function Manage() {
                     required
                     className="text-sm w-44"
                   />
-                  {isAWhimCategory && (
+                  {isTitlelessArticleCategory && (
                     <p className="text-xs text-muted-foreground tracking-wide">
-                      this date will be the entry’s clickable title; no separate title is needed.
+                      this date will be the entry’s visible label; no separate title is needed.
                     </p>
                   )}
                 </div>

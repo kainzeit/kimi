@@ -10,9 +10,9 @@ describe("A Whim titleless date-heading contract", () => {
 
     expect(manageSource).toContain('const isAWhimCategory = articleCategory === "a-whim"');
     expect(manageSource).toContain('const internalSlug = articleForm.slug || `whim-${articleForm.publishedAt.replaceAll("-", "")}-${Date.now().toString(36)}`');
-    expect(manageSource).toContain('const internalTitle = isAWhimCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim()');
+    expect(manageSource).toContain('const internalTitle = isTitlelessArticleCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim()');
     expect(manageSource).toContain('{!isAWhimCategory && (');
-    expect(manageSource).toContain("this date will be the entry’s clickable title");
+    expect(manageSource).toContain("this date will be the entry’s visible label");
   });
 
   it("uses the A Whim date as the clickable list title and article-detail heading", async () => {
@@ -22,7 +22,7 @@ describe("A Whim titleless date-heading contract", () => {
     expect(listSource).toContain('href={`/a-whim/${article.slug}`}');
     expect(listSource).toContain("{formatWhimDate(article.publishedAt)}");
     expect(postSource).toContain("const isAWhim = !isImagination && !isElsewhere;");
-    expect(postSource).toContain("{!isAWhim && (");
+    expect(postSource).toContain("{!isTitlelessEntry && (");
     expect(postSource).toContain("? new Date(article.publishedAt).toLocaleDateString");
   });
 
@@ -34,17 +34,17 @@ describe("A Whim titleless date-heading contract", () => {
 
     expect(listSource).toContain('className="text-[11px] font-normal text-[#719199] nav-link inline-block mb-0 leading-tight a-whim-date"');
     expect(listSource).toContain('className="text-sm text-muted-foreground tracking-wide mt-1 leading-relaxed max-w-lg a-whim-preview"');
-    expect(postSource).toContain('isAWhim ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"');
-    expect(postSource).toContain('isAWhim ? "a-whim-title-row mb-6" : "mb-6"');
+    expect(postSource).toContain('isTitlelessEntry ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"');
+    expect(postSource).toContain('isTitlelessEntry ? "a-whim-title-row mb-6" : "mb-6"');
     expect(cssSource).toContain(".a-whim-title-row");
-    expect(manageSource).toContain('isAWhim ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"');
+    expect(manageSource).toContain('isTitleless ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"');
   });
 
-  it("keeps title-led workflows for Imagination and Elsewhere", async () => {
+  it("keeps a title-led workflow for Imagination while Elsewhere shares the date-record workflow", async () => {
     const manageSource = await readFile(path.join(projectRoot, "client/src/pages/Manage.tsx"), "utf8");
     const postSource = await readFile(path.join(projectRoot, "client/src/pages/Post.tsx"), "utf8");
 
-    expect(manageSource).toContain('{!isAWhimCategory && (');
+    expect(manageSource).toContain('{!isTitlelessArticleCategory && (');
     expect(manageSource).toContain('placeholder="slug (e.g., my-first-post)"');
     expect(manageSource).toContain('placeholder="title"');
     expect(postSource).toContain(": article.title}");

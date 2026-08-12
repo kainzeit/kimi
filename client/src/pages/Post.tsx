@@ -12,6 +12,7 @@ export default function Post() {
   const isImagination = location.startsWith("/imagination/");
   const isElsewhere = location.startsWith("/elsewhere/");
   const isAWhim = !isImagination && !isElsewhere;
+  const isTitlelessEntry = isAWhim || isElsewhere;
   const category = isElsewhere ? "elsewhere" : isImagination ? "imagination" : "a-whim";
   const backHref = isElsewhere ? "/elsewhere" : isImagination ? "/imagination" : "/a-whim";
 
@@ -60,7 +61,7 @@ export default function Post() {
       ) : (
         <>
           <article className="max-w-xl article-reading-density article-density-comfortable">
-            {!isAWhim && (
+            {!isTitlelessEntry && (
               <p className="text-xs text-muted-foreground mb-4 tracking-wide">
                 {new Date(article.publishedAt).toLocaleDateString("en-US", {
                   year: "numeric",
@@ -69,9 +70,9 @@ export default function Post() {
                 })}
               </p>
             )}
-            <div className={isAWhim ? "a-whim-title-row mb-6" : "mb-6"}>
-              <h1 className={isAWhim ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"}>
-                {isAWhim
+            <div className={isTitlelessEntry ? "a-whim-title-row mb-6" : "mb-6"}>
+              <h1 className={isTitlelessEntry ? "text-[11px] font-normal text-[#719199] leading-tight a-whim-date-heading" : "text-2xl font-bold"}>
+                {isTitlelessEntry
                   ? new Date(article.publishedAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",

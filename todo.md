@@ -217,3 +217,7 @@
 - [x] Detect duplicate article slugs before database insertion and return a clear conflict error
 - [x] Display a helpful duplicate-slug message in Manage instead of raw database mutation output
 - [x] Add regression coverage for duplicate slug creation and successful unique-slug creation
+
+- [x] Remove the Elsewhere title field from Manage and derive its internal title from the entry date
+- [x] Use the entry date instead of an Elsewhere title on article detail pages
+- [x] Add regression coverage for titleless Elsewhere creation, editing, and public detail rendering
