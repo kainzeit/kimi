@@ -36,16 +36,12 @@ describe("Mobile public-site layout contract", () => {
     expect(styles).toContain("line-height: 1.625;");
   });
 
-  it("provides remembered compact and comfortable article reading-density modes", async () => {
+  it("uses unified comfortable article reading density without toggle controls", async () => {
     const postSource = await readFile(path.join(projectRoot, "client/src/pages/Post.tsx"), "utf8");
     const styles = await readFile(path.join(projectRoot, "client/src/index.css"), "utf8");
 
-    expect(postSource).toContain('const READING_DENSITY_STORAGE_KEY = "kimi-reading-density"');
-    expect(postSource).toContain('sessionStorage.setItem(READING_DENSITY_STORAGE_KEY, readingDensity)');
-    expect(postSource).toContain('aria-label="Reading density"');
-    expect(postSource).toContain('onClick={() => setReadingDensity("compact")}');
-    expect(postSource).toContain('onClick={() => setReadingDensity("comfortable")}');
-    expect(styles).toContain(".article-density-compact .article-reading-content");
-    expect(styles).toContain("line-height: 1.45;");
+    expect(postSource).toContain('article-density-comfortable');
+    expect(postSource).not.toContain('Reading density');
+    expect(styles).toContain("line-height: 1.625;");
   });
 });

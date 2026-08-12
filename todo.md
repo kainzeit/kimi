@@ -193,3 +193,7 @@
 - [x] Increase text-underline-offset for body and Knock hyperlinks so the straight underline is slightly lower
 - [x] Verify updated underline offset and ensure navigation/A Whim wave styles remain untouched
 
+- [x] Remove Compact/Comfortable reading density toggle controls from Post.tsx
+- [x] Ensure all article pages default to Comfortable reading layout and spacing
+- [x] Verify clean minimalist layout and mobile responsiveness without density toggle
+
