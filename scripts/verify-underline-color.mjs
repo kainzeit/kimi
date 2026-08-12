@@ -7,6 +7,12 @@ try {
   await page.addInitScript(() => sessionStorage.setItem("kimi-greeted", "yes"));
   await page.goto("http://localhost:3000/a-whim", { waitUntil: "networkidle" });
 
+  await page.goto("http://localhost:3000/a-whim", { waitUntil: "networkidle" });
+  const aWhimDate = page.locator(".a-whim-date").first();
+  const aWhimDateWave = await aWhimDate.count() > 0
+    ? await aWhimDate.evaluate((element) => getComputedStyle(element, "::after").backgroundImage)
+    : null;
+
   const navLink = page.locator(".nav-link").first();
   const navWave = await navLink.evaluate((element) => getComputedStyle(element, "::after").backgroundImage);
 
@@ -43,9 +49,11 @@ try {
     };
   });
 
-  const result = { navWaves, realArticleUnderline };
+  const result = { navWaves, aWhimDateWave, realArticleUnderline };
   const allNavsValid = Object.values(navWaves).every((w) => typeof w === "string" && w.includes("%23719199"));
-  if (!allNavsValid || !realArticleUnderline || realArticleUnderline.color !== "rgb(113, 145, 153)" || realArticleUnderline.style !== "wavy") {
+  const aWhimWaveIsThin = typeof aWhimDateWave === "string" && aWhimDateWave.includes("stroke-width='1.35'");
+  const navWaveKeepsStandardWeight = typeof navWave === "string" && navWave.includes("stroke-width='2.8'");
+  if (!allNavsValid || !aWhimWaveIsThin || !navWaveKeepsStandardWeight || !realArticleUnderline || realArticleUnderline.color !== "rgb(113, 145, 153)" || realArticleUnderline.style !== "wavy") {
     throw new Error(JSON.stringify(result));
   }
   console.log(JSON.stringify(result));

@@ -10,6 +10,10 @@ describe("underline color contract", () => {
 
     expect(css).toContain("stroke='%23719199'");
     expect(css).toContain("text-decoration-color: #719199;");
+    expect(css).toContain(".nav-link::after");
+    expect(css).toContain("stroke-width='2.8'");
+    expect(css).toContain(".a-whim-date::after");
+    expect(css).toContain("stroke-width='1.35'");
     expect(css).toContain("text-decoration-style: wavy;");
     expect(css).not.toContain("stroke='%23fbbf24'");
   });

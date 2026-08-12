@@ -175,3 +175,6 @@
 - [x] Update all wavy underlines in site navigation and article styles to use #719199
 - [x] Verify wavy underline rendering and color consistency across public pages
 
+- [x] Create a dedicated thinner wavy underline class for A Whim entry dates
+- [x] Verify A Whim uses the thinner wavy underline while other sections retain their existing wavy style
+
