@@ -1,0 +1,56 @@
+import { chromium } from "@playwright/test";
+
+const browser = await chromium.launch({ executablePath: "/usr/bin/chromium", headless: true, args: ["--no-sandbox"] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+
+try {
+  await page.addInitScript(() => sessionStorage.setItem("kimi-greeted", "yes"));
+  await page.goto("http://localhost:3000/a-whim", { waitUntil: "networkidle" });
+
+  const navLink = page.locator(".nav-link").first();
+  const navWave = await navLink.evaluate((element) => getComputedStyle(element, "::after").backgroundImage);
+
+  const routes = ["/", "/foyer", "/a-whim", "/imagination", "/elsewhere", "/knock"];
+  const navWaves = {};
+  for (const route of routes) {
+    await page.goto(`http://localhost:3000${route}`, { waitUntil: "networkidle" });
+    const link = page.locator(".nav-link").first();
+    if (await link.count() > 0) {
+      navWaves[route] = await link.evaluate((el) => getComputedStyle(el, "::after").backgroundImage);
+    }
+  }
+
+  await page.goto("http://localhost:3000/imagination/ny-dlc", { waitUntil: "networkidle" });
+  const realArticleUnderline = await page.evaluate(() => {
+    let el = document.querySelector(".prose-content a, .prose-content u");
+    if (!el) {
+      const container = document.querySelector(".prose-content");
+      if (container) {
+        const p = document.createElement("p");
+        const a = document.createElement("a");
+        a.href = "#";
+        a.textContent = "test link";
+        p.appendChild(a);
+        container.appendChild(p);
+        el = a;
+      }
+    }
+    if (!el) return null;
+    const style = getComputedStyle(el);
+    return {
+      color: style.textDecorationColor,
+      style: style.textDecorationStyle,
+    };
+  });
+
+  const result = { navWaves, realArticleUnderline };
+  const allNavsValid = Object.values(navWaves).every((w) => typeof w === "string" && w.includes("%23719199"));
+  if (!allNavsValid || !realArticleUnderline || realArticleUnderline.color !== "rgb(113, 145, 153)" || realArticleUnderline.style !== "wavy") {
+    throw new Error(JSON.stringify(result));
+  }
+  console.log(JSON.stringify(result));
+} finally {
+  await browser.close();
+}
+
+process.exit(0);

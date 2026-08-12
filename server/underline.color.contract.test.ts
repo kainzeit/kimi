@@ -1,0 +1,17 @@
+import { describe, expect, it } from "vitest";
+import fs from "node:fs/promises";
+import path from "node:path";
+
+const projectRoot = path.resolve(import.meta.dirname, "..");
+
+describe("underline color contract", () => {
+  it("uses #719199 for navigation and article wavy underlines", async () => {
+    const css = await fs.readFile(path.join(projectRoot, "client/src/index.css"), "utf8");
+
+    expect(css).toContain("stroke='%23719199'");
+    expect(css).toContain("text-decoration-color: #719199;");
+    expect(css).toContain("text-decoration-style: wavy;");
+    expect(css).not.toContain("stroke='%23fbbf24'");
+  });
+});
+

@@ -172,3 +172,6 @@
 - [x] Apply the user-selected #719199 color to A Whim dates across list, detail, and preview views
 - [x] Verify #719199 rendering, 11px hierarchy, and other article category typography
 
+- [x] Update all wavy underlines in site navigation and article styles to use #719199
+- [x] Verify wavy underline rendering and color consistency across public pages
+
