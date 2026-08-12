@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw, Maximize2 } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw, Maximize2, Link as LinkIcon } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -280,6 +280,35 @@ function RichEditor({
         >
           <List className="w-3.5 h-3.5" />
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            const previousUrl = editor.getAttributes("link").href;
+            const url = window.prompt("Enter URL for hyperlink:", previousUrl || "https://");
+            if (url === null) {
+              return;
+            }
+            if (url === "") {
+              editor.chain().focus().extendMarkRange("link").unsetLink().run();
+              return;
+            }
+            editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+          }}
+          className={`p-1.5 rounded text-sm transition flex items-center gap-1 ${editor.isActive("link") ? "bg-foreground text-background" : "hover:bg-muted text-muted-foreground hover:text-foreground"}`}
+          title="Insert or edit hyperlink"
+        >
+          <LinkIcon className="w-3.5 h-3.5" />
+        </button>
+        {editor.isActive("link") && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().extendMarkRange("link").unsetLink().run()}
+            className="p-1.5 rounded hover:bg-muted text-xs text-muted-foreground hover:text-foreground transition"
+            title="Remove hyperlink"
+          >
+            unlink
+          </button>
+        )}
         <div className="w-px bg-border mx-1" />
         {/* Insert image: local upload or online URL */}
         <label className="p-1.5 rounded hover:bg-muted cursor-pointer flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition" title="Upload local image">

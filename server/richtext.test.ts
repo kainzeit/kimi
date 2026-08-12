@@ -24,7 +24,7 @@ describe("Rich Text Content and Style Verification", () => {
   it("persists exact inline styles, colors, image dimensions, and font sizes through round-trip storage", async () => {
     const caller = appRouter.createCaller(createContext());
     const slug = `richtext-fontsize-${Date.now()}`;
-    const htmlContent = '<p><span style="font-size: 20px; color: rgb(0, 128, 255);">Large Colored</span> <img src="https://example.com/pic.png" width="300px" height="227px" style="width: 300px; height: 227px; object-fit: contain;" /></p>';
+    const htmlContent = '<p><span style="font-size: 20px; color: rgb(0, 128, 255);">Large Colored</span> <a href="https://example.com">Visit Link</a> <img src="https://example.com/pic.png" width="300px" height="227px" style="width: 300px; height: 227px; object-fit: contain;" /></p>';
 
     await caller.articles.create({
       slug,

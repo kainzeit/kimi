@@ -178,3 +178,8 @@
 - [x] Create a dedicated thinner wavy underline class for A Whim entry dates
 - [x] Verify A Whim uses the thinner wavy underline while other sections retain their existing wavy style
 
+- [x] Add hyperlink insertion capability to RichEditor toolbar in Manage
+- [x] Style editor and public article hyperlinks with #719199 wavy underlines
+- [x] Add Vitest regression test for hyperlink persistence in RichEditor
+- [x] Save checkpoint and deliver hyperlink feature
+

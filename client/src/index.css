@@ -218,13 +218,16 @@
   }
   .prose-content a,
   .ProseMirror a {
+    color: #719199;
     text-decoration-line: underline;
     text-decoration-style: wavy;
     text-decoration-color: #719199;
     text-underline-offset: 3px;
-    opacity: 0.8;
+    opacity: 0.9;
   }
-  .prose-content a:hover {
+  .prose-content a:hover,
+  .ProseMirror a:hover {
+    color: #719199;
     opacity: 1;
   }
   /* Preserve inline text colors set by the rich text editor */
