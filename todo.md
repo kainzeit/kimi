@@ -203,3 +203,6 @@
 - [x] Add 30-second article draft autosave status and unsaved-change navigation confirmation in Manage
 - [x] Add selection controls, batch action bar, list-level preview, and Markdown download controls to Manage Articles
 - [x] Add Vitest and browser checks for autosave, batch operations, preview, export, and leave-confirmation workflows
+- [x] Add archive view (by year/month) for A Whim section
+- [x] Add picture gallery mode for Elsewhere section while keeping article entries accessible
+- [x] Verify minimalist aesthetic, responsiveness, and clean navigation for both additions

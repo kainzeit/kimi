@@ -1,33 +1,37 @@
+import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { ManagedPageImage, type ManagedPageImageData } from "@/components/ManagedPageImage";
 import { Link } from "wouter";
 
-const CONTENT_TOP = "169px";
-const IMG_SIZE = "189px"; // 5cm
-const IMG_GAP = "113px";
-
 /** Extract the first sentence/line of plain text from HTML or plain content */
 function getPreview(content: string): string {
   let text = content;
-  // Strip HTML tags if content is HTML
   if (text.trim().startsWith("<")) {
     text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   }
-  // Take up to the first sentence boundary or 120 chars
   const match = text.match(/^(.{10,120}?[.!?。！？])/);
   if (match) return match[1];
-  // Fallback: first 100 chars
   return text.slice(0, 100).trim() + (text.length > 100 ? "…" : "");
 }
 
 export default function Elsewhere() {
   const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "elsewhere" });
   const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "elsewhere" });
+  const [viewMode, setViewMode] = useState<"list" | "gallery">("list");
+  const [selectedImage, setSelectedImage] = useState<ManagedPageImageData | null>(null);
+  const elsewhereImages = images as ManagedPageImageData[];
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedImage(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, []);
 
   return (
     <div className="public-content-layout">
-      {/* Article list */}
       <div className="public-text-column flex-1 min-w-0">
         {isLoading ? (
           <div className="flex py-12">
@@ -60,12 +64,75 @@ export default function Elsewhere() {
         )}
       </div>
 
-      {/* Images: right of content, 5cm height with proportional width */}
-      {(images as any[]).length > 0 && (
-        <div className="public-image-column flex flex-col gap-4 shrink-0">
-          {(images as ManagedPageImageData[]).map((image) => (
-            <ManagedPageImage key={image.id} image={image} fallbackHeight={189} />
-          ))}
+      {elsewhereImages.length > 0 && (
+        <div className="public-image-column flex flex-col gap-4 shrink-0 min-w-0">
+          <div className="flex items-center gap-3 text-xs tracking-wide text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              className={viewMode === "list" ? "text-foreground font-semibold" : "hover:text-foreground transition"}
+              aria-pressed={viewMode === "list"}
+            >
+              list
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("gallery")}
+              className={viewMode === "gallery" ? "text-foreground font-semibold" : "hover:text-foreground transition"}
+              aria-pressed={viewMode === "gallery"}
+            >
+              gallery
+            </button>
+          </div>
+
+          {viewMode === "list" ? (
+            elsewhereImages.map((image) => (
+              <ManagedPageImage key={image.id} image={image} fallbackHeight={189} />
+            ))
+          ) : (
+            <div className="grid w-full max-w-sm grid-cols-2 gap-x-3 gap-y-5">
+              {elsewhereImages.map((image) => (
+                <button
+                  key={image.id}
+                  type="button"
+                  onClick={() => setSelectedImage(image)}
+                  className="block min-w-0 text-left"
+                  aria-label="Open image"
+                >
+                  <img
+                    src={image.url}
+                    alt=""
+                    className="h-32 w-full rounded object-cover transition-opacity hover:opacity-80 sm:h-40"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {selectedImage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-6"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            type="button"
+            aria-label="Close image preview"
+            className="absolute right-6 top-5 text-2xl leading-none text-muted-foreground hover:text-foreground"
+            onClick={() => setSelectedImage(null)}
+          >
+            ×
+          </button>
+          <img
+            src={selectedImage.url}
+            alt=""
+            className="max-h-[85vh] max-w-full object-contain"
+            onClick={(event) => event.stopPropagation()}
+          />
         </div>
       )}
     </div>
