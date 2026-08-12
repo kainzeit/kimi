@@ -46,7 +46,7 @@ export default function Knock() {
                   return (
                     <p key={idx}>
                       {label}:{" "}
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-[#719199] no-underline hover:opacity-70 transition">
+                      <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "#719199", textUnderlineOffset: "3px" }} className="hover:opacity-80 transition">
                         {url}
                       </a>
                     </p>
@@ -56,7 +56,7 @@ export default function Knock() {
               if (line.includes("@") && !line.includes(" ")) {
                 return (
                   <p key={idx}>
-                    <a href={`mailto:${line}`} className="text-[#719199] no-underline hover:opacity-70 transition">
+                    <a href={`mailto:${line}`} style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "#719199", textUnderlineOffset: "3px" }} className="hover:opacity-80 transition">
                       {line}
                     </a>
                   </p>

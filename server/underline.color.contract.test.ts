@@ -17,9 +17,10 @@ describe("underline color contract", () => {
     expect(css).toContain("stroke-width='1.35'");
     expect(css).toContain("text-decoration-style: wavy;");
     expect(css).toContain(".prose-content a,");
-    expect(css).toContain("text-decoration: none;");
-    expect(knock).toContain("text-[#719199] no-underline");
-    expect(knock).not.toContain("className=\"underline underline-offset-4");
+    expect(css).toContain("text-decoration-style: solid;");
+    expect(css).toContain("text-decoration-color: #719199;");
+    expect(knock).toContain("textDecoration: \"underline\"");
+    expect(knock).toContain("textDecorationColor: \"#719199\"");
     expect(css).not.toContain("stroke='%23fbbf24'");
   });
 });

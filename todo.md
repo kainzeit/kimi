@@ -187,3 +187,6 @@
 - [x] Remove wavy underlines from email links in Knock page while keeping #719199 color
 - [x] Verify other navigation wavy underlines remain intact
 
+- [x] Change body hyperlinks and Knock email/website links to solid #719199 straight underlines with hover feedback
+- [x] Verify navigation and A Whim date wavy underlines remain unchanged
+

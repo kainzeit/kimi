@@ -44,8 +44,9 @@ try {
     if (!el) return null;
     const style = getComputedStyle(el);
     return {
-      color: style.color,
-      decoration: style.textDecorationLine,
+      styleLine: style.textDecorationLine,
+      styleStyle: style.textDecorationStyle,
+      underlineColor: style.textDecorationColor,
     };
   });
 
@@ -53,7 +54,7 @@ try {
   const allNavsValid = Object.values(navWaves).every((w) => typeof w === "string" && w.includes("%23719199"));
   const aWhimWaveIsThin = typeof aWhimDateWave === "string" && aWhimDateWave.includes("stroke-width='1.35'");
   const navWaveKeepsStandardWeight = typeof navWave === "string" && navWave.includes("stroke-width='2.8'");
-  if (!allNavsValid || !aWhimWaveIsThin || !navWaveKeepsStandardWeight || !realArticleLink || realArticleLink.color !== "rgb(113, 145, 153)" || realArticleLink.decoration !== "none") {
+  if (!allNavsValid || !aWhimWaveIsThin || !navWaveKeepsStandardWeight || !realArticleLink || realArticleLink.styleLine !== "underline" || realArticleLink.styleStyle !== "solid" || realArticleLink.underlineColor !== "rgb(113, 145, 153)") {
     throw new Error(JSON.stringify(result));
   }
   console.log(JSON.stringify(result));
