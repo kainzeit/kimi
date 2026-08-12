@@ -206,3 +206,6 @@
 - [x] Add archive view (by year/month) for A Whim section
 - [x] Add picture gallery mode for Elsewhere section while keeping article entries accessible
 - [x] Verify minimalist aesthetic, responsiveness, and clean navigation for both additions
+- [x] Extract the first image from each Elsewhere article HTML for a silent right-column thumbnail entry
+- [x] Replace Elsewhere list titles, dates, and text previews with smaller right-column article thumbnails
+- [x] Preserve article detail while verifying thumbnail navigation and mobile layout
