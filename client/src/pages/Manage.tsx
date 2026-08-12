@@ -756,6 +756,14 @@ function ArticlePreview({
   onClose: () => void;
 }) {
   const isHtml = content.trim().startsWith("<");
+  const isAWhim = category === "a-whim";
+  const displayDate = publishedAt
+    ? new Date(`${publishedAt}T12:00:00`).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "date preview";
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-background text-foreground">
@@ -768,16 +776,8 @@ function ArticlePreview({
       <div className="public-post-layout mx-auto max-w-4xl">
         <p className="mb-8 inline-block text-xs tracking-wide text-muted-foreground">← {category}</p>
         <article className="max-w-xl">
-          <p className="mb-4 text-xs tracking-wide text-muted-foreground">
-            {publishedAt
-              ? new Date(`${publishedAt}T12:00:00`).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })
-              : "date preview"}
-          </p>
-          <h1 className="mb-8 text-2xl font-bold">{title || "untitled article"}</h1>
+          {!isAWhim && <p className="mb-4 text-xs tracking-wide text-muted-foreground">{displayDate}</p>}
+          <h1 className="mb-8 text-2xl font-bold">{isAWhim ? displayDate : title || "untitled article"}</h1>
           {isHtml ? (
             <div className="prose-content text-base leading-loose tracking-wide" dangerouslySetInnerHTML={{ __html: content }} />
           ) : (
@@ -808,6 +808,13 @@ export default function Manage() {
   const [isUploading, setIsUploading] = useState(false);
   const [savingPage, setSavingPage] = useState(false);
   const [sizingImageId, setSizingImageId] = useState<number | null>(null);
+  const isAWhimCategory = articleCategory === "a-whim";
+  const formatWhimDate = (value: string) =>
+    new Date(`${value}T12:00:00`).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
   // Articles
   const { data: articles = [], isLoading: articlesLoading, refetch: refetchArticles } =
@@ -850,25 +857,30 @@ export default function Manage() {
   }, [pageContent?.content, activePageKey]);
 
   const handleSaveArticle = async (isDraft: boolean) => {
-    if (!articleForm.slug || !articleForm.title) return;
+    const internalSlug = articleForm.slug || `whim-${articleForm.publishedAt.replaceAll("-", "")}-${Date.now().toString(36)}`;
+    const internalTitle = isAWhimCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim();
+    if (!isAWhimCategory && (!internalSlug || !internalTitle)) return;
     const content = articleRichContent || articleForm.content;
     if (!content) return;
+    const articlePayload = {
+      ...articleForm,
+      slug: internalSlug,
+      title: internalTitle,
+      content,
+      publishedAt: articleForm.publishedAt,
+    };
     try {
       if (editingArticleId) {
         await updateArticleMutation.mutateAsync({
           id: editingArticleId,
-          ...articleForm,
-          content,
-          publishedAt: articleForm.publishedAt,
+          ...articlePayload,
           isDraft,
         });
         setEditingArticleId(null);
       } else {
         await createArticleMutation.mutateAsync({
-          ...articleForm,
-          content,
+          ...articlePayload,
           category: articleCategory,
-          publishedAt: articleForm.publishedAt,
           isDraft,
         });
       }
@@ -1183,20 +1195,24 @@ export default function Manage() {
                 <p className="text-xs text-muted-foreground tracking-wide">
                   {editingArticleId ? "edit article" : `new article in ${articleCategory}`}
                 </p>
-                <Input
-                  placeholder="slug (e.g., my-first-post)"
-                  value={articleForm.slug}
-                  onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
-                  required
-                  className="text-sm"
-                />
-                <Input
-                  placeholder="title"
-                  value={articleForm.title}
-                  onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
-                  required
-                  className="text-sm"
-                />
+                {!isAWhimCategory && (
+                  <>
+                    <Input
+                      placeholder="slug (e.g., my-first-post)"
+                      value={articleForm.slug}
+                      onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
+                      required
+                      className="text-sm"
+                    />
+                    <Input
+                      placeholder="title"
+                      value={articleForm.title}
+                      onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+                      required
+                      className="text-sm"
+                    />
+                  </>
+                )}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground tracking-wide">date</label>
                   <Input
@@ -1206,6 +1222,11 @@ export default function Manage() {
                     required
                     className="text-sm w-44"
                   />
+                  {isAWhimCategory && (
+                    <p className="text-xs text-muted-foreground tracking-wide">
+                      this date will be the entry’s clickable title; no separate title is needed.
+                    </p>
+                  )}
                 </div>
                 <RichEditor
                   content={articleRichContent}
@@ -1269,18 +1290,31 @@ export default function Manage() {
                     <div key={article.id} className={`flex items-start justify-between py-3 ${article.isHidden || article.isDraft ? "opacity-60" : ""}`} style={{ borderBottom: "1px solid var(--border)" }}>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold">{article.title}</p>
+                        <p className="text-sm font-semibold">
+                          {articleCategory === "a-whim"
+                            ? new Date(article.publishedAt).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })
+                            : article.title}
+                        </p>
                         {article.isDraft ? (
                           <span className="text-[10px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded tracking-wide">draft</span>
                         ) : null}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
-                        /{articleCategory}/{article.slug} ·{" "}
-                        {new Date(article.publishedAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        /{articleCategory}/{article.slug}
+                        {articleCategory !== "a-whim" && (
+                          <>
+                            {" · "}
+                            {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </>
+                        )}
                       </p>
                     </div>
                     <div className="flex gap-2 ml-4 mt-0.5 items-center">

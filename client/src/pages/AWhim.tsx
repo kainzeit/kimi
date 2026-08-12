@@ -22,6 +22,14 @@ function getPreview(content: string): string {
   return text.slice(0, 100).trim() + (text.length > 100 ? "…" : "");
 }
 
+function formatWhimDate(value: Date | string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export default function AWhim() {
   const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "a-whim" });
   const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "a-whim" });
@@ -41,15 +49,10 @@ export default function AWhim() {
             {articles.map((article) => (
               <div key={article.id}>
                 <Link href={`/a-whim/${article.slug}`}>
-                  <h2 className="text-base font-semibold nav-link inline-block mb-1">{article.title}</h2>
+                  <h2 className="text-base font-semibold nav-link inline-block mb-1">
+                    {formatWhimDate(article.publishedAt)}
+                  </h2>
                 </Link>
-                <p className="text-xs text-muted-foreground tracking-wide mt-1">
-                  {new Date(article.publishedAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
                 {article.content && (
                   <p className="text-sm text-muted-foreground tracking-wide mt-2 leading-relaxed max-w-lg">
                     {getPreview(article.content)}

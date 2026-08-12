@@ -21,6 +21,7 @@ export default function Post() {
   // Determine category from URL path
   const isImagination = location.startsWith("/imagination/");
   const isElsewhere = location.startsWith("/elsewhere/");
+  const isAWhim = !isImagination && !isElsewhere;
   const category = isElsewhere ? "elsewhere" : isImagination ? "imagination" : "a-whim";
   const backHref = isElsewhere ? "/elsewhere" : isImagination ? "/imagination" : "/a-whim";
 
@@ -76,15 +77,25 @@ export default function Post() {
       ) : (
         <>
           <article className={`max-w-xl article-reading-density article-density-${readingDensity}`}>
-            <p className="text-xs text-muted-foreground mb-4 tracking-wide">
-              {new Date(article.publishedAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
+            {!isAWhim && (
+              <p className="text-xs text-muted-foreground mb-4 tracking-wide">
+                {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            )}
             <div className="article-title-row">
-              <h1 className="text-2xl font-bold">{article.title}</h1>
+              <h1 className="text-2xl font-bold">
+                {isAWhim
+                  ? new Date(article.publishedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : article.title}
+              </h1>
               <div className="reading-density-toggle" role="group" aria-label="Reading density">
                 <button
                   type="button"

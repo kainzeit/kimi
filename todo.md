@@ -152,3 +152,8 @@
 - [x] Add an accessible compact/comfortable density toggle to the article view
 - [x] Apply distinct line-height and paragraph-spacing rules for each density without affecting images or article navigation
 - [x] Verify the density toggle, remembered setting, and 375px article layout
+- [x] Allow new and edited A Whim entries to omit the article title in Manage
+- [x] Render A Whim list entries with a clickable date in the primary title position and no visible title
+- [x] Render A Whim detail pages with the date as the main heading and no duplicate date metadata
+- [x] Verify existing A Whim entries, date navigation, and Imagination/Elsewhere title workflows remain intact
+- [x] Update the database article category enum so Elsewhere entries can be created and published
