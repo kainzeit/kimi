@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw, Maximize2, Link as LinkIcon } from "lucide-react";
@@ -832,9 +832,17 @@ export default function Manage() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
   const [isPreviewingArticle, setIsPreviewingArticle] = useState(false);
+  const [previewArticle, setPreviewArticle] = useState<any | null>(null);
+  const [selectedArticleIds, setSelectedArticleIds] = useState<number[]>([]);
+  const [isExportingMarkdown, setIsExportingMarkdown] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "", publishedAt: today });
   const [articleRichContent, setArticleRichContent] = useState("");
+  const [articleBaseline, setArticleBaseline] = useState("");
+  const [pageBaseline, setPageBaseline] = useState("");
+  const [pageDirty, setPageDirty] = useState(false);
+  const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const autosaveRunnerRef = useRef<() => Promise<void>>(async () => {});
   const [editingContent, setEditingContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [savingPage, setSavingPage] = useState(false);
@@ -852,6 +860,9 @@ export default function Manage() {
     trpc.articles.list.useQuery({ category: articleCategory, includeHidden: true });
   const createArticleMutation = trpc.articles.create.useMutation();
   const updateArticleMutation = trpc.articles.update.useMutation();
+  const autosaveArticleMutation = trpc.articles.autosave.useMutation();
+  const getArticleAutosaveMutation = trpc.articles.getAutosave.useMutation();
+  const clearArticleAutosaveMutation = trpc.articles.clearAutosave.useMutation();
   const deleteArticleMutation = trpc.articles.delete.useMutation();
   const hideArticleMutation = trpc.articles.hide.useMutation();
   const unhideArticleMutation = trpc.articles.unhide.useMutation();
@@ -859,6 +870,11 @@ export default function Manage() {
   const restoreArticleMutation = trpc.articles.restore.useMutation();
   const permanentlyDeleteArticleMutation = trpc.articles.permanentlyDelete.useMutation();
   const setArticleDraftMutation = trpc.articles.setDraft.useMutation();
+  const batchUpdateArticlesMutation = trpc.articles.batchUpdate.useMutation();
+  const { refetch: refetchMarkdownExport } = trpc.articles.exportMarkdown.useQuery(
+    { category: articleCategory },
+    { enabled: false },
+  );
   const { data: deletedArticles = [], refetch: refetchDeletedArticles } =
     trpc.articles.listDeleted.useQuery({});
 
@@ -884,8 +900,96 @@ export default function Manage() {
   useEffect(() => {
     if (pageContent?.content !== undefined) {
       setEditingContent(pageContent.content);
+      setPageBaseline(pageContent.content);
+      setPageDirty(false);
     }
   }, [pageContent?.content, activePageKey]);
+
+  const articleSnapshot = (form = articleForm, richContent = articleRichContent) =>
+    JSON.stringify({ ...form, content: richContent || form.content, category: articleCategory });
+  const articleDirty = isCreating && articleBaseline !== articleSnapshot();
+
+  const resetArticleEditor = () => {
+    setIsCreating(false);
+    setEditingArticleId(null);
+    setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
+    setArticleRichContent("");
+    setArticleBaseline("");
+    setAutosaveStatus("idle");
+  };
+
+  const confirmDiscardChanges = () => {
+    if (!articleDirty && !pageDirty) return true;
+    return window.confirm("Current content has not been saved yet. Leave this page and discard the latest changes?");
+  };
+
+  const navigateAfterConfirmingDiscard = (navigate: () => void) => {
+    if (!confirmDiscardChanges()) return;
+    if (articleDirty) resetArticleEditor();
+    if (pageDirty) {
+      setEditingContent(pageBaseline);
+      setPageDirty(false);
+    }
+    navigate();
+  };
+
+  const handleArticleCategoryChange = (category: Category) => {
+    navigateAfterConfirmingDiscard(() => {
+      setArticleCategory(category);
+      setShowArticleRecycle(false);
+      setSelectedArticleIds([]);
+    });
+  };
+
+  const handleAutosaveArticle = async () => {
+    if (!isCreating || !articleDirty) return;
+    const content = articleRichContent || articleForm.content;
+    if (!content.trim()) return;
+
+    const internalSlug = articleForm.slug || `whim-${articleForm.publishedAt.replaceAll("-", "")}-${Date.now().toString(36)}`;
+    const internalTitle = isAWhimCategory ? formatWhimDate(articleForm.publishedAt) : articleForm.title.trim();
+    if (!isAWhimCategory && (!internalSlug || !internalTitle)) return;
+
+    setAutosaveStatus("saving");
+    try {
+      const result = await autosaveArticleMutation.mutateAsync({
+        id: editingArticleId,
+        slug: internalSlug,
+        title: internalTitle,
+        content,
+        category: articleCategory,
+        publishedAt: articleForm.publishedAt,
+      });
+      const savedForm = { ...articleForm, slug: internalSlug, title: internalTitle };
+      setArticleForm(savedForm);
+      if (!editingArticleId && result.articleId) setEditingArticleId(result.articleId);
+      setArticleBaseline(articleSnapshot(savedForm, content));
+      setAutosaveStatus("saved");
+    } catch (err) {
+      console.error("Autosave failed:", err);
+      setAutosaveStatus("error");
+    }
+  };
+
+  autosaveRunnerRef.current = handleAutosaveArticle;
+
+  useEffect(() => {
+    if (!isCreating) return;
+    const interval = window.setInterval(() => {
+      void autosaveRunnerRef.current();
+    }, 30_000);
+    return () => window.clearInterval(interval);
+  }, [isCreating]);
+
+  useEffect(() => {
+    const preventUnload = (event: BeforeUnloadEvent) => {
+      if (!articleDirty && !pageDirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", preventUnload);
+    return () => window.removeEventListener("beforeunload", preventUnload);
+  }, [articleDirty, pageDirty]);
 
   const handleSaveArticle = async (isDraft: boolean) => {
     const internalSlug = articleForm.slug || `whim-${articleForm.publishedAt.replaceAll("-", "")}-${Date.now().toString(36)}`;
@@ -907,7 +1011,7 @@ export default function Manage() {
           ...articlePayload,
           isDraft,
         });
-        setEditingArticleId(null);
+        await clearArticleAutosaveMutation.mutateAsync({ id: editingArticleId });
       } else {
         await createArticleMutation.mutateAsync({
           ...articlePayload,
@@ -915,24 +1019,33 @@ export default function Manage() {
           isDraft,
         });
       }
-      setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
-      setArticleRichContent("");
-      setIsCreating(false);
+      resetArticleEditor();
       refetchArticles();
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleEditArticle = (article: any) => {
+  const handleEditArticle = async (article: any) => {
+    if (!confirmDiscardChanges()) return;
+    const autosave = article.isDraft ? null : await getArticleAutosaveMutation.mutateAsync({ id: article.id });
+    const workingCopy = autosave ?? article;
     setArticleForm({
-      slug: article.slug,
-      title: article.title,
-      content: article.content,
-      publishedAt: new Date(article.publishedAt).toISOString().split("T")[0],
+      slug: workingCopy.slug,
+      title: workingCopy.title,
+      content: workingCopy.content,
+      publishedAt: new Date(workingCopy.publishedAt).toISOString().split("T")[0],
     });
-    setArticleRichContent(article.content);
+    setArticleRichContent(workingCopy.content);
+    setArticleBaseline(JSON.stringify({
+      slug: workingCopy.slug,
+      title: workingCopy.title,
+      content: workingCopy.content,
+      publishedAt: new Date(workingCopy.publishedAt).toISOString().split("T")[0],
+      category: article.category,
+    }));
     setEditingArticleId(article.id);
+    setAutosaveStatus(autosave ? "saved" : "idle");
     setIsCreating(true);
   };
 
@@ -981,10 +1094,47 @@ export default function Manage() {
     }
   };
 
+  const handleBulkArticleAction = async (action: "publish" | "hide" | "delete") => {
+    if (selectedArticleIds.length === 0) return;
+    const actionLabel = action === "delete" ? "move selected articles to recycle" : `${action} selected articles`;
+    if (!window.confirm(`${actionLabel}?`)) return;
+    try {
+      await batchUpdateArticlesMutation.mutateAsync({ ids: selectedArticleIds, action });
+      setSelectedArticleIds([]);
+      await refetchArticles();
+      await refetchDeletedArticles();
+    } catch (err) {
+      console.error("Bulk article action failed:", err);
+    }
+  };
+
+  const handleExportMarkdown = async () => {
+    setIsExportingMarkdown(true);
+    try {
+      const exported = await refetchMarkdownExport();
+      if (!exported.data) throw new Error("Markdown export was empty");
+      const blob = new Blob([exported.data.markdown], { type: "text/markdown;charset=utf-8" });
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = exported.data.filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error("Markdown export failed:", err);
+    } finally {
+      setIsExportingMarkdown(false);
+    }
+  };
+
   const handleSavePage = async () => {
     setSavingPage(true);
     try {
       await updatePageMutation.mutateAsync({ pageKey: activePageKey, content: editingContent });
+      setPageBaseline(editingContent);
+      setPageDirty(false);
       refetchPage();
     } catch (err) {
       console.error(err);
@@ -1059,12 +1209,14 @@ export default function Manage() {
   };
 
   const visibleArticles = (articles as any[]).filter((article: any) => !article.deletedAt);
+  const selectedVisibleArticleIds = selectedArticleIds.filter((id) => visibleArticles.some((article: any) => article.id === id));
+  const allVisibleArticlesSelected = visibleArticles.length > 0 && selectedVisibleArticleIds.length === visibleArticles.length;
   const visibleImages = (images as any[]).filter((image: any) => !image.deletedAt);
   const sizingImage = visibleImages.find((image: any) => image.id === sizingImageId);
 
   const navBtn = (s: Section, label: string) => (
     <button
-      onClick={() => setSection(s)}
+      onClick={() => navigateAfterConfirmingDiscard(() => setSection(s))}
       className={`text-sm tracking-wide transition pb-0.5 ${
         section === s
           ? "text-foreground font-semibold"
@@ -1090,7 +1242,7 @@ export default function Manage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="px-12 pt-10 pb-6 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <a href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-sm">
+          <a href="/" onClick={(event) => { if (!confirmDiscardChanges()) event.preventDefault(); }} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-sm">
             <ArrowLeft className="w-4 h-4" />
             back
           </a>
@@ -1111,8 +1263,8 @@ export default function Manage() {
         {section === "pages" && (
           <div>
             <div className="flex gap-6 mb-8">
-              {subBtn<PageKey>("foyer", activePageKey, "foyer", setActivePageKey)}
-              {subBtn<PageKey>("knock", activePageKey, "knock", setActivePageKey)}
+              {subBtn<PageKey>("foyer", activePageKey, "foyer", (value) => navigateAfterConfirmingDiscard(() => setActivePageKey(value)))}
+              {subBtn<PageKey>("knock", activePageKey, "knock", (value) => navigateAfterConfirmingDiscard(() => setActivePageKey(value)))}
             </div>
             {pageLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -1123,7 +1275,10 @@ export default function Manage() {
                 </p>
                 <RichEditor
                   content={editingContent}
-                  onChange={setEditingContent}
+                  onChange={(content) => {
+                    setEditingContent(content);
+                    setPageDirty(content !== pageBaseline);
+                  }}
                 />
                 <Button
                   onClick={handleSavePage}
@@ -1142,24 +1297,15 @@ export default function Manage() {
         {section === "articles" && (
           <div>
             <div className="flex gap-6 mb-8">
-              {subBtn<Category>("a-whim", articleCategory, "a whim", (value) => {
-                setArticleCategory(value);
-                setShowArticleRecycle(false);
-              })}
-              {subBtn<Category>("imagination", articleCategory, "imagination", (value) => {
-                setArticleCategory(value);
-                setShowArticleRecycle(false);
-              })}
-              {subBtn<Category>("elsewhere", articleCategory, "elsewhere", (value) => {
-                setArticleCategory(value);
-                setShowArticleRecycle(false);
-              })}
+              {subBtn<Category>("a-whim", articleCategory, "a whim", handleArticleCategoryChange)}
+              {subBtn<Category>("imagination", articleCategory, "imagination", handleArticleCategoryChange)}
+              {subBtn<Category>("elsewhere", articleCategory, "elsewhere", handleArticleCategoryChange)}
               <button
                 type="button"
-                onClick={() => {
+                onClick={() => navigateAfterConfirmingDiscard(() => {
                   setShowArticleRecycle(true);
-                  setIsCreating(false);
-                }}
+                  setSelectedArticleIds([]);
+                })}
                 className={`text-xs tracking-wide transition ${
                   showArticleRecycle ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -1210,21 +1356,35 @@ export default function Manage() {
             ) : (
               <>
             {!isCreating ? (
-              <button
-                onClick={() => {
-                  setIsCreating(true);
-                  setEditingArticleId(null);
-                  setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
-                  setArticleRichContent("");
-                }}
-                className="text-xs text-muted-foreground hover:text-foreground transition tracking-wide mb-8 block"
-              >
-                + new article
-              </button>
+              <div className="mb-8 flex flex-wrap items-center gap-4">
+                <button
+                  onClick={() => {
+                    const blankForm = { slug: "", title: "", content: "", publishedAt: today };
+                    setIsCreating(true);
+                    setEditingArticleId(null);
+                    setArticleForm(blankForm);
+                    setArticleRichContent("");
+                    setArticleBaseline(JSON.stringify({ ...blankForm, content: "", category: articleCategory }));
+                    setAutosaveStatus("idle");
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition tracking-wide"
+                >
+                  + new article
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleExportMarkdown()}
+                  disabled={isExportingMarkdown}
+                  className="text-xs text-muted-foreground hover:text-foreground transition tracking-wide disabled:opacity-50"
+                >
+                  {isExportingMarkdown ? "exporting…" : "export markdown"}
+                </button>
+              </div>
             ) : (
               <div className="max-w-2xl space-y-4 mb-10">
                 <p className="text-xs text-muted-foreground tracking-wide">
                   {editingArticleId ? "edit article" : `new article in ${articleCategory}`}
+                  {autosaveStatus === "saving" ? " · saving draft…" : autosaveStatus === "saved" ? " · draft saved" : autosaveStatus === "error" ? " · autosave failed" : ""}
                 </p>
                 {!isAWhimCategory && (
                   <>
@@ -1299,10 +1459,7 @@ export default function Manage() {
                     size="sm"
                     className="text-xs"
                     onClick={() => {
-                      setIsCreating(false);
-                      setEditingArticleId(null);
-                      setArticleForm({ slug: "", title: "", content: "", publishedAt: today });
-                      setArticleRichContent("");
+                      if (!articleDirty || window.confirm("Discard unsaved article changes?")) resetArticleEditor();
                     }}
                   >
                     cancel
@@ -1317,9 +1474,35 @@ export default function Manage() {
               <p className="text-sm text-muted-foreground tracking-wide">no articles yet.</p>
             ) : (
               <div className="max-w-2xl space-y-4">
+                <div className="flex flex-wrap items-center gap-3 pb-2">
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleArticlesSelected}
+                      onChange={(event) => setSelectedArticleIds(event.target.checked ? visibleArticles.map((article: any) => article.id) : [])}
+                    />
+                    select all
+                  </label>
+                  {selectedVisibleArticleIds.length > 0 && (
+                    <>
+                      <span className="text-xs text-muted-foreground">{selectedVisibleArticleIds.length} selected</span>
+                      <button type="button" onClick={() => void handleBulkArticleAction("publish")} className="text-xs text-muted-foreground hover:text-foreground transition">publish</button>
+                      <button type="button" onClick={() => void handleBulkArticleAction("hide")} className="text-xs text-muted-foreground hover:text-foreground transition">hide</button>
+                      <button type="button" onClick={() => void handleBulkArticleAction("delete")} className="text-xs text-destructive hover:opacity-70 transition">delete</button>
+                    </>
+                  )}
+                </div>
                 {visibleArticles.map((article: any) => (
                     <div key={article.id} className={`flex items-start justify-between py-3 ${article.isHidden || article.isDraft ? "opacity-60" : ""}`} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <div>
+                    <div className="flex min-w-0 items-start gap-3">
+                      <input
+                        type="checkbox"
+                        className="mt-1"
+                        checked={selectedArticleIds.includes(article.id)}
+                        onChange={(event) => setSelectedArticleIds((ids) => event.target.checked ? [...ids, article.id] : ids.filter((id) => id !== article.id))}
+                        aria-label={`Select ${article.title}`}
+                      />
+                      <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-semibold">
                           {articleCategory === "a-whim"
@@ -1347,6 +1530,7 @@ export default function Manage() {
                           </>
                         )}
                       </p>
+                      </div>
                     </div>
                     <div className="flex gap-2 ml-4 mt-0.5 items-center">
                       <button
@@ -1369,6 +1553,13 @@ export default function Manage() {
                         title={article.isHidden ? "Show on site" : "Hide from site"}
                       >
                         {article.isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => setPreviewArticle(article)}
+                        className="text-muted-foreground hover:text-foreground transition"
+                        title="Preview"
+                      >
+                        <Maximize2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleEditArticle(article)}
@@ -1558,13 +1749,16 @@ export default function Manage() {
         {/* GREETING CONFIG */}
         {section === "greeting" && <GreetingSection />}
 
-        {isPreviewingArticle && (
+        {(isPreviewingArticle || previewArticle) && (
           <ArticlePreview
-            title={articleForm.title}
-            content={articleRichContent || articleForm.content}
-            publishedAt={articleForm.publishedAt}
-            category={articleCategory}
-            onClose={() => setIsPreviewingArticle(false)}
+            title={previewArticle?.title ?? articleForm.title}
+            content={previewArticle?.content ?? (articleRichContent || articleForm.content)}
+            publishedAt={previewArticle ? new Date(previewArticle.publishedAt).toISOString().split("T")[0] : articleForm.publishedAt}
+            category={previewArticle?.category ?? articleCategory}
+            onClose={() => {
+              setIsPreviewingArticle(false);
+              setPreviewArticle(null);
+            }}
           />
         )}
       </div>

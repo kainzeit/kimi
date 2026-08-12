@@ -1,6 +1,6 @@
-import { and, eq, desc, sql, isNull, isNotNull } from "drizzle-orm";
+import { and, eq, desc, sql, isNull, isNotNull, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, articles, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
+import { InsertUser, users, articles, articleAutosaves, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -446,6 +446,7 @@ export async function permanentlyDeleteArticle(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   try {
+    await db.delete(articleAutosaves).where(eq(articleAutosaves.articleId, id));
     return await db
       .delete(articles)
       .where(and(eq(articles.id, id), isNotNull(articles.deletedAt)));
@@ -590,5 +591,96 @@ export async function setImageDraft(id: number, isDraft: boolean) {
   } catch (error) {
     console.error("[Database] Failed to set image draft status:", error);
     throw error;
+  }
+}
+
+export type ArticleBatchAction = "publish" | "hide" | "delete";
+
+export async function batchUpdateArticles(ids: number[], action: ArticleBatchAction) {
+  const normalizedIds = Array.from(new Set(ids)).filter((id) => Number.isInteger(id) && id > 0);
+  if (normalizedIds.length === 0) return { affected: 0 };
+
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  const whereActive = and(inArray(articles.id, normalizedIds), isNull(articles.deletedAt));
+  try {
+    const result = action === "publish"
+      ? await db.update(articles).set({ isDraft: 0, isHidden: 0, updatedAt: now }).where(whereActive)
+      : action === "hide"
+        ? await db.update(articles).set({ isHidden: 1, updatedAt: now }).where(whereActive)
+        : await db.update(articles).set({ deletedAt: now, updatedAt: now }).where(whereActive);
+    return { affected: (result as { rowsAffected?: number }).rowsAffected ?? normalizedIds.length };
+  } catch (error) {
+    console.error("[Database] Failed to batch update articles:", error);
+    throw error;
+  }
+}
+
+export type ArticleAutosaveInput = {
+  articleId: number;
+  slug: string;
+  title: string;
+  content: string;
+  category: "a-whim" | "imagination" | "elsewhere";
+  publishedAt: Date;
+};
+
+export async function saveArticleAutosave(data: ArticleAutosaveInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db.insert(articleAutosaves).values({
+      ...data,
+      category: data.category as any,
+    }).onDuplicateKeyUpdate({
+      set: {
+        slug: data.slug,
+        title: data.title,
+        content: data.content,
+        category: data.category as any,
+        publishedAt: data.publishedAt,
+        updatedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error("[Database] Failed to save article autosave:", error);
+    throw error;
+  }
+}
+
+export async function getArticleAutosave(articleId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  try {
+    const result = await db.select().from(articleAutosaves).where(eq(articleAutosaves.articleId, articleId)).limit(1);
+    return result[0];
+  } catch (error) {
+    console.error("[Database] Failed to get article autosave:", error);
+    return undefined;
+  }
+}
+
+export async function clearArticleAutosave(articleId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    return await db.delete(articleAutosaves).where(eq(articleAutosaves.articleId, articleId));
+  } catch (error) {
+    console.error("[Database] Failed to clear article autosave:", error);
+    throw error;
+  }
+}
+
+export async function getArticleForManage(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  try {
+    const result = await db.select().from(articles).where(eq(articles.id, id)).limit(1);
+    return result[0];
+  } catch (error) {
+    console.error("[Database] Failed to get article for Manage:", error);
+    return undefined;
   }
 }

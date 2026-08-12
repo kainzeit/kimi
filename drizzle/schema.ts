@@ -42,8 +42,24 @@ export const articles = mysqlTable("articles", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// Private, owner-only working copy for an already published article. Keeping
+// this separate from articles ensures a timed autosave never changes public
+// content or unpublishes a live entry.
+export const articleAutosaves = mysqlTable("articleAutosaves", {
+  id: int("id").autoincrement().primaryKey(),
+  articleId: int("articleId").notNull().unique(),
+  slug: varchar("slug", { length: 255 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: longtext("content").notNull(),
+  category: mysqlEnum("category", ["a-whim", "imagination", "elsewhere"]).notNull(),
+  publishedAt: timestamp("publishedAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type Article = typeof articles.$inferSelect;
 export type InsertArticle = typeof articles.$inferInsert;
+export type ArticleAutosave = typeof articleAutosaves.$inferSelect;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

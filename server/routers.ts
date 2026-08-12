@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import {
   listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle,
   hideArticle, unhideArticle, softDeleteArticle, restoreArticle, permanentlyDeleteArticle, listDeletedArticles, setArticleDraft,
+  batchUpdateArticles, getArticleForManage, saveArticleAutosave, getArticleAutosave, clearArticleAutosave,
   getPageContent, updatePageContent,
   listImages, deleteImage,
   hideImage, unhideImage, softDeleteImage, restoreImage, listDeletedImages, setImageDraft, updateImageDimensions,
@@ -12,6 +13,7 @@ import {
   incrementArticleView, listArticleViews,
   getSiteConfig, setSiteConfig,
 } from "./db";
+import { articlesToMarkdown } from "./articleMarkdown";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -110,6 +112,65 @@ export const appRouter = router({
     listDeleted: publicProcedure
       .input(z.object({ category: z.string().optional() }))
       .query(async ({ input }) => listDeletedArticles(input.category)),
+
+    batchUpdate: publicProcedure
+      .input(z.object({
+        ids: z.array(z.number().int().positive()).min(1).max(100),
+        action: z.enum(["publish", "hide", "delete"]),
+      }))
+      .mutation(async ({ input }) => batchUpdateArticles(input.ids, input.action)),
+
+    exportMarkdown: publicProcedure
+      .input(z.object({ category: z.enum(["a-whim", "imagination", "elsewhere"]) }))
+      .query(async ({ input }) => {
+        const articleRows = await listArticles(input.category, { includeHidden: true, includeDeleted: false });
+        return {
+          filename: `${input.category}-articles.md`,
+          markdown: articlesToMarkdown(input.category, articleRows),
+        };
+      }),
+
+    getAutosave: publicProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => getArticleAutosave(input.id)),
+
+    autosave: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive().nullable(),
+        slug: z.string(),
+        title: z.string(),
+        content: z.string().min(1),
+        category: z.enum(["a-whim", "imagination", "elsewhere"]),
+        publishedAt: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const payload = {
+          slug: input.slug,
+          title: input.title,
+          content: input.content,
+          category: input.category,
+          publishedAt: new Date(input.publishedAt),
+        };
+
+        if (!input.id) {
+          const result = await createArticle({ ...payload, authorId: 0, isDraft: 1 });
+          return { mode: "draft-created" as const, articleId: Number((result as { insertId?: number }).insertId) };
+        }
+
+        const article = await getArticleForManage(input.id);
+        if (!article) throw new Error("Article not found");
+        if (article.isDraft) {
+          await updateArticle(input.id, { ...payload, isDraft: 1 });
+          return { mode: "draft-updated" as const, articleId: input.id };
+        }
+
+        await saveArticleAutosave({ articleId: input.id, ...payload });
+        return { mode: "private-autosave" as const, articleId: input.id };
+      }),
+
+    clearAutosave: publicProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => clearArticleAutosave(input.id)),
   }),
 
   pages: router({

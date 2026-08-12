@@ -197,3 +197,9 @@
 - [x] Ensure all article pages default to Comfortable reading layout and spacing
 - [x] Verify clean minimalist layout and mobile responsiveness without density toggle
 
+- [x] Add persisted autosave payload support for article edits without unpublishing the current public version
+- [x] Add batch publish, hide, and recycle operations for selected article IDs through the existing Manage access model
+- [x] Add Markdown export for each A Whim, Imagination, and Elsewhere article collection
+- [x] Add 30-second article draft autosave status and unsaved-change navigation confirmation in Manage
+- [x] Add selection controls, batch action bar, list-level preview, and Markdown download controls to Manage Articles
+- [x] Add Vitest and browser checks for autosave, batch operations, preview, export, and leave-confirmation workflows
