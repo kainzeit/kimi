@@ -31,6 +31,22 @@ try {
     return content.getBoundingClientRect().top - row.getBoundingClientRect().bottom;
   });
 
+  const mobile = await browser.newPage({ viewport: { width: 375, height: 812 } });
+  await mobile.addInitScript(() => sessionStorage.setItem("kimi-greeted", "yes"));
+  await mobile.goto("http://localhost:3000/a-whim", { waitUntil: "networkidle" });
+  await mobile.locator(".public-text-column h2").first().click();
+  const mobileWhimDetailTypography = await mobile.locator("article h1").evaluate((element) => {
+    const style = getComputedStyle(element);
+    const body = element.closest("article")?.querySelector(".article-reading-content");
+    return {
+      fontSize: style.fontSize,
+      fontWeight: style.fontWeight,
+      bodyFontSize: body ? getComputedStyle(body).fontSize : "",
+    };
+  });
+  await mobile.screenshot({ path: "/home/ubuntu/screenshots/a-whim-detail-mobile.png", fullPage: true });
+  await mobile.close();
+
   await page.goto("http://localhost:3000/imagination", { waitUntil: "networkidle" });
   const imaginationListTitle = page.locator(".public-text-column h2").first();
   const imaginationListTypography = await imaginationListTitle.evaluate((element) => {
@@ -68,6 +84,9 @@ try {
     whimListTypography.color !== "rgb(113, 145, 153)" ||
     whimDetailTypography.fontSize !== "11px" ||
     whimDetailTypography.fontWeight !== "400" ||
+    mobileWhimDetailTypography.fontSize !== "12px" ||
+    mobileWhimDetailTypography.fontWeight !== "400" ||
+    mobileWhimDetailTypography.bodyFontSize !== "16px" ||
     whimDetailTypography.color !== "rgb(113, 145, 153)" ||
     imaginationListTypography.fontWeight === "400" ||
     imaginationDetailTypography.fontWeight === "400" ||
@@ -76,10 +95,10 @@ try {
     whimListGap > 6 ||
     whimDetailGap > 14
   ) {
-    throw new Error(JSON.stringify({ whimListTypography, whimDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
+    throw new Error(JSON.stringify({ whimListTypography, whimDetailTypography, mobileWhimDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
   }
 
-  console.log(JSON.stringify({ whimListTypography, whimDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
+  console.log(JSON.stringify({ whimListTypography, whimDetailTypography, mobileWhimDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
 } finally {
   await browser.close();
 }

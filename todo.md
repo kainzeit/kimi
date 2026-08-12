@@ -236,3 +236,6 @@
 - [x] Align Elsewhere dual-column grid to the left with natural spacing from the sidebar, leaving space on the right for user-uploaded summary images
 - [x] Reorder Elsewhere entry elements so the thumbnail image comes first, followed by the date, and then the preview sentence below the date
 - [x] Verify left-aligned layout, reordered entry content, and mobile responsiveness with regression tests
+
+- [x] Reduce article detail page date font size for A Whim entries so it appears smaller than body text by approximately two steps (e.g. 11px)
+- [x] Verify A Whim detail page typography on mobile (375px) and desktop, and run regression tests
