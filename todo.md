@@ -190,3 +190,6 @@
 - [x] Change body hyperlinks and Knock email/website links to solid #719199 straight underlines with hover feedback
 - [x] Verify navigation and A Whim date wavy underlines remain unchanged
 
+- [x] Increase text-underline-offset for body and Knock hyperlinks so the straight underline is slightly lower
+- [x] Verify updated underline offset and ensure navigation/A Whim wave styles remain untouched
+

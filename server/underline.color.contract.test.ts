@@ -19,8 +19,10 @@ describe("underline color contract", () => {
     expect(css).toContain(".prose-content a,");
     expect(css).toContain("text-decoration-style: solid;");
     expect(css).toContain("text-decoration-color: #719199;");
+    expect(css).toContain("text-underline-offset: 5px;");
     expect(knock).toContain("textDecoration: \"underline\"");
     expect(knock).toContain("textDecorationColor: \"#719199\"");
+    expect(knock).toContain("textUnderlineOffset: \"5px\"");
     expect(css).not.toContain("stroke='%23fbbf24'");
   });
 });
