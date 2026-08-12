@@ -161,3 +161,7 @@
 - [x] Verify A Whim date styling while preserving Imagination and Elsewhere title typography
 - [x] Reduce A Whim date typography by one additional size step on public list, detail, and preview views
 - [x] Verify the smaller A Whim date remains lighter than body text while other article titles retain their hierarchy
+- [ ] Set A Whim dates to 10px with a lighter gray-black color on list, detail, and preview views
+- [ ] Tighten the spacing between A Whim dates and their preview/body content
+- [ ] Verify the 10px date styling and confirm other article categories remain unchanged
+
