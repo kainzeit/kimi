@@ -67,6 +67,13 @@ try {
   const mobileLayout = await mobile.evaluate(() => {
     const grid = document.querySelector(".elsewhere-grid");
     const row = document.querySelector(".elsewhere-grid-row");
+    const dates = Array.from(document.querySelectorAll(".elsewhere-grid-row .elsewhere-entry"))
+      .map((entry) => ({
+        date: entry.querySelector("time")?.textContent?.trim() || "",
+        top: entry.getBoundingClientRect().top,
+      }))
+      .sort((first, second) => first.top - second.top)
+      .map(({ date }) => date);
     return {
       viewport: window.innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
@@ -74,10 +81,14 @@ try {
       rowDisplay: row ? getComputedStyle(row).display : "",
       rowFlexDirection: row ? getComputedStyle(row).flexDirection : "",
       rowDirection: row ? getComputedStyle(row).direction : "",
+      dates,
     };
   });
-  if (mobileLayout.scrollWidth > mobileLayout.viewport || mobileLayout.gridDirection !== "column" || mobileLayout.rowDisplay !== "flex" || mobileLayout.rowFlexDirection !== "column") {
+  if (mobileLayout.scrollWidth > mobileLayout.viewport || mobileLayout.gridDirection !== "column-reverse" || mobileLayout.rowDisplay !== "flex" || mobileLayout.rowFlexDirection !== "column-reverse" || mobileLayout.rowDirection !== "ltr") {
     throw new Error(JSON.stringify(mobileLayout));
+  }
+  if (mobileLayout.dates.length >= 2 && new Date(mobileLayout.dates[0]).getTime() < new Date(mobileLayout.dates[1]).getTime()) {
+    throw new Error(`Mobile Elsewhere is not newest-to-oldest from top to bottom: ${JSON.stringify(mobileLayout)}`);
   }
   await mobile.screenshot({ path: "/home/ubuntu/screenshots/elsewhere-grid-mobile.png", fullPage: true });
   await mobile.close();

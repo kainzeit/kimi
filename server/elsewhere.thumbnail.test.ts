@@ -35,6 +35,7 @@ describe("Elsewhere article thumbnail extraction", () => {
     expect(source.indexOf("{article.imageSrc &&") < source.indexOf("<time") && source.indexOf("<time") < source.indexOf("getPreview(article.content)")).toBe(true);
     expect(styles).toContain("justify-content: flex-end;");
     expect(styles).toContain("gap: 3cm;");
-    expect(styles).toContain("flex-direction: column;");
+    expect(styles).toContain("flex-direction: column-reverse;");
+    expect(styles).toContain("direction: ltr;");
   });
 });

@@ -711,12 +711,11 @@
 
 @media (max-width: 767px) {
   .elsewhere-grid {
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 3rem;
   }
-
   .elsewhere-grid-row {
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 3rem;
     direction: ltr;
   }

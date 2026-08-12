@@ -239,3 +239,6 @@
 
 - [x] Reduce article detail page date font size for A Whim entries so it appears smaller than body text by approximately two steps (e.g. 11px)
 - [x] Verify A Whim detail page typography on mobile (375px) and desktop, and run regression tests
+
+- [x] Reverse Elsewhere mobile entry order so the newest photo appears at the top and the earliest at the bottom, while keeping desktop Z-shaped layout intact
+- [x] Verify mobile Elsewhere chronological order and run regression tests
