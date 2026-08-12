@@ -49,7 +49,7 @@ export default function AWhim() {
             {articles.map((article) => (
               <div key={article.id}>
                 <Link href={`/a-whim/${article.slug}`}>
-                  <h2 className="text-base font-semibold nav-link inline-block mb-1">
+                  <h2 className="text-sm font-normal nav-link inline-block mb-1">
                     {formatWhimDate(article.publishedAt)}
                   </h2>
                 </Link>

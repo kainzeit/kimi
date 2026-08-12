@@ -157,3 +157,5 @@
 - [x] Render A Whim detail pages with the date as the main heading and no duplicate date metadata
 - [x] Verify existing A Whim entries, date navigation, and Imagination/Elsewhere title workflows remain intact
 - [x] Update the database article category enum so Elsewhere entries can be created and published
+- [x] Make A Whim date headings match the body-text size and remove bold weight on list and detail views
+- [x] Verify A Whim date styling while preserving Imagination and Elsewhere title typography

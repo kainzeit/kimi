@@ -777,7 +777,9 @@ function ArticlePreview({
         <p className="mb-8 inline-block text-xs tracking-wide text-muted-foreground">← {category}</p>
         <article className="max-w-xl">
           {!isAWhim && <p className="mb-4 text-xs tracking-wide text-muted-foreground">{displayDate}</p>}
-          <h1 className="mb-8 text-2xl font-bold">{isAWhim ? displayDate : title || "untitled article"}</h1>
+          <h1 className={`mb-8 ${isAWhim ? "text-base font-normal" : "text-2xl font-bold"}`}>
+            {isAWhim ? displayDate : title || "untitled article"}
+          </h1>
           {isHtml ? (
             <div className="prose-content text-base leading-loose tracking-wide" dangerouslySetInnerHTML={{ __html: content }} />
           ) : (

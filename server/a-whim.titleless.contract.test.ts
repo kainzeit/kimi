@@ -26,6 +26,16 @@ describe("A Whim titleless date-heading contract", () => {
     expect(postSource).toContain("? new Date(article.publishedAt).toLocaleDateString");
   });
 
+  it("uses body-sized, regular-weight typography for A Whim dates only", async () => {
+    const listSource = await readFile(path.join(projectRoot, "client/src/pages/AWhim.tsx"), "utf8");
+    const postSource = await readFile(path.join(projectRoot, "client/src/pages/Post.tsx"), "utf8");
+    const manageSource = await readFile(path.join(projectRoot, "client/src/pages/Manage.tsx"), "utf8");
+
+    expect(listSource).toContain('className="text-sm font-normal nav-link inline-block mb-1"');
+    expect(postSource).toContain('isAWhim ? "text-base font-normal" : "text-2xl font-bold"');
+    expect(manageSource).toContain('isAWhim ? "text-base font-normal" : "text-2xl font-bold"');
+  });
+
   it("keeps title-led workflows for Imagination and Elsewhere", async () => {
     const manageSource = await readFile(path.join(projectRoot, "client/src/pages/Manage.tsx"), "utf8");
     const postSource = await readFile(path.join(projectRoot, "client/src/pages/Post.tsx"), "utf8");

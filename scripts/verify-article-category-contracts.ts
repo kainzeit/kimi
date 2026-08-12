@@ -54,9 +54,17 @@ try {
   await publicPage.goto("http://localhost:3000/elsewhere", { waitUntil: "networkidle" });
   const elsewhereTitleLink = publicPage.locator(`a[href="/elsewhere/${elsewhereSlug}"]`).filter({ hasText: elsewhereMarker });
   await elsewhereTitleLink.waitFor();
+  const elsewhereListTypography = await elsewhereTitleLink.locator("h2").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { fontSize: style.fontSize, fontWeight: style.fontWeight };
+  });
   await elsewhereTitleLink.click();
   await publicPage.waitForFunction((slug) => window.location.pathname === `/elsewhere/${slug}`, elsewhereSlug);
   const elsewhereHeading = await publicPage.locator("article h1").innerText();
+  const elsewhereDetailTypography = await publicPage.locator("article h1").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { fontSize: style.fontSize, fontWeight: style.fontWeight };
+  });
 
   for (const category of ["imagination", "elsewhere"]) {
     await managePage.getByRole("button", { name: category, exact: true }).click();
@@ -66,11 +74,17 @@ try {
     await managePage.getByRole("button", { name: "cancel", exact: true }).click();
   }
 
-  if (whimHeading !== whimDate || imaginationHeading !== existingImagination.title || elsewhereHeading !== elsewhereMarker) {
-    throw new Error(JSON.stringify({ whimHeading, whimDate, imaginationHeading, imaginationTitle: existingImagination.title, elsewhereHeading, elsewhereMarker }));
+  if (
+    whimHeading !== whimDate ||
+    imaginationHeading !== existingImagination.title ||
+    elsewhereHeading !== elsewhereMarker ||
+    elsewhereListTypography.fontWeight === "400" ||
+    elsewhereDetailTypography.fontWeight === "400"
+  ) {
+    throw new Error(JSON.stringify({ whimHeading, whimDate, imaginationHeading, imaginationTitle: existingImagination.title, elsewhereHeading, elsewhereMarker, elsewhereListTypography, elsewhereDetailTypography }));
   }
 
-  console.log(JSON.stringify({ whimSlug: existingWhim.slug, whimHeading, imaginationSlug: existingImagination.slug, imaginationHeading, elsewhereSlug, elsewhereHeading }));
+  console.log(JSON.stringify({ whimSlug: existingWhim.slug, whimHeading, imaginationSlug: existingImagination.slug, imaginationHeading, elsewhereSlug, elsewhereHeading, elsewhereListTypography, elsewhereDetailTypography }));
 } finally {
   await browser.close();
   if (elsewhereFixtureId) {

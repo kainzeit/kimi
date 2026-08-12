@@ -87,7 +87,7 @@ export default function Post() {
               </p>
             )}
             <div className="article-title-row">
-              <h1 className="text-2xl font-bold">
+              <h1 className={isAWhim ? "text-base font-normal" : "text-2xl font-bold"}>
                 {isAWhim
                   ? new Date(article.publishedAt).toLocaleDateString("en-US", {
                       year: "numeric",
