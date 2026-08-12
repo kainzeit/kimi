@@ -24,6 +24,10 @@ describe("Elsewhere article thumbnail extraction", () => {
     expect(source).toContain("text-[#719199]");
     expect(source).toContain("getPreview(article.content)");
     expect(source).toContain("object-contain");
+    expect(source).toContain("entryRows");
+    expect(source).toContain("elsewhere-grid");
+    expect(source).toContain("elsewhere-grid-row");
+    expect(source).toContain("h-[302px]");
     expect(source).not.toContain("object-cover");
   });
 });

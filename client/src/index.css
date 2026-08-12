@@ -671,3 +671,42 @@
     height: auto !important;
   }
 }
+
+.elsewhere-grid {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4rem;
+}
+
+.elsewhere-grid-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 3rem 2rem;
+  direction: rtl;
+}
+
+.elsewhere-entry {
+  min-width: 0;
+  direction: ltr;
+}
+
+.elsewhere-thumbnail {
+  width: auto;
+  height: 302px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 767px) {
+  .elsewhere-grid {
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .elsewhere-grid-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+    direction: ltr;
+  }
+}

@@ -19,9 +19,12 @@ function formatEntryDate(value: Date | string) {
 
 export default function Elsewhere() {
   const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "elsewhere" });
-  const timelineArticles = (articles || [])
+  const sortedArticles = (articles || [])
     .map((article) => ({ ...article, imageSrc: getFirstRichTextImageSrc(article.content) }))
     .sort((first, second) => new Date(second.publishedAt).getTime() - new Date(first.publishedAt).getTime());
+  const entryRows = Array.from({ length: Math.ceil(sortedArticles.length / 2) }, (_, rowIndex) =>
+    sortedArticles.slice(rowIndex * 2, rowIndex * 2 + 2),
+  );
 
   return (
     <div className="public-content-layout">
@@ -30,34 +33,38 @@ export default function Elsewhere() {
           <div className="flex py-12">
             <Loader2 className="w-5 h-5 animate-spin" />
           </div>
-        ) : timelineArticles.length === 0 ? (
+        ) : sortedArticles.length === 0 ? (
           <p className="text-base text-muted-foreground tracking-wide">nothing here yet.</p>
         ) : (
-          <div className="max-w-lg space-y-10">
-            {timelineArticles.map((article) => (
-              <article key={article.id} className="space-y-3">
-                <Link href={`/elsewhere/${article.slug}`}>
-                  <time className="inline-block text-[11px] font-normal text-[#719199] leading-tight a-whim-date">
-                    {formatEntryDate(article.publishedAt)}
-                  </time>
-                </Link>
+          <div className="elsewhere-grid max-w-4xl">
+            {entryRows.map((row, rowIndex) => (
+              <div className="elsewhere-grid-row" key={`elsewhere-row-${rowIndex}`}>
+                {row.map((article) => (
+                  <article key={article.id} className="elsewhere-entry space-y-3">
+                    <Link href={`/elsewhere/${article.slug}`}>
+                      <time className="inline-block text-[11px] font-normal text-[#719199] leading-tight a-whim-date">
+                        {formatEntryDate(article.publishedAt)}
+                      </time>
+                    </Link>
 
-                {article.imageSrc && (
-                  <Link href={`/elsewhere/${article.slug}`}>
-                    <img
-                      src={article.imageSrc}
-                      alt={article.title || "Elsewhere entry"}
-                      className="block h-auto max-h-36 w-auto max-w-full rounded object-contain transition-opacity hover:opacity-80 sm:max-h-40"
-                    />
-                  </Link>
-                )}
+                    {article.imageSrc && (
+                      <Link href={`/elsewhere/${article.slug}`} className="block w-fit max-w-full">
+                        <img
+                          src={article.imageSrc}
+                          alt={article.title || "Elsewhere entry"}
+                          className="elsewhere-thumbnail block h-[302px] w-auto max-w-full rounded object-contain transition-opacity hover:opacity-80"
+                        />
+                      </Link>
+                    )}
 
-                {article.content && (
-                  <p className="max-w-md text-sm leading-relaxed tracking-wide text-muted-foreground">
-                    {getPreview(article.content)}
-                  </p>
-                )}
-              </article>
+                    {article.content && (
+                      <p className="max-w-md text-sm leading-relaxed tracking-wide text-muted-foreground">
+                        {getPreview(article.content)}
+                      </p>
+                    )}
+                  </article>
+                ))}
+              </div>
             ))}
           </div>
         )}

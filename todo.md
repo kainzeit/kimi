@@ -221,3 +221,7 @@
 - [x] Remove the Elsewhere title field from Manage and derive its internal title from the entry date
 - [x] Use the entry date instead of an Elsewhere title on article detail pages
 - [x] Add regression coverage for titleless Elsewhere creation, editing, and public detail rendering
+
+- [x] Arrange Elsewhere entries in two-column rows with 8cm proportional thumbnails, newest at the bottom-right moving leftward
+- [x] Verify Elsewhere mobile fallback remains single-column without horizontal overflow
+- [x] Run regression tests and browser visual checks for the Elsewhere grid
