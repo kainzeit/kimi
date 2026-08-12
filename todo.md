@@ -183,3 +183,7 @@
 - [x] Add Vitest regression test for hyperlink persistence in RichEditor
 - [x] Save checkpoint and deliver hyperlink feature
 
+- [x] Remove wavy underlines from body hyperlinks while keeping #719199 color
+- [x] Remove wavy underlines from email links in Knock page while keeping #719199 color
+- [x] Verify other navigation wavy underlines remain intact
+

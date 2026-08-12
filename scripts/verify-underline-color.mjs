@@ -27,8 +27,8 @@ try {
   }
 
   await page.goto("http://localhost:3000/imagination/ny-dlc", { waitUntil: "networkidle" });
-  const realArticleUnderline = await page.evaluate(() => {
-    let el = document.querySelector(".prose-content a, .prose-content u");
+  const realArticleLink = await page.evaluate(() => {
+    let el = document.querySelector(".prose-content a");
     if (!el) {
       const container = document.querySelector(".prose-content");
       if (container) {
@@ -44,16 +44,16 @@ try {
     if (!el) return null;
     const style = getComputedStyle(el);
     return {
-      color: style.textDecorationColor,
-      style: style.textDecorationStyle,
+      color: style.color,
+      decoration: style.textDecorationLine,
     };
   });
 
-  const result = { navWaves, aWhimDateWave, realArticleUnderline };
+  const result = { navWaves, aWhimDateWave, realArticleLink };
   const allNavsValid = Object.values(navWaves).every((w) => typeof w === "string" && w.includes("%23719199"));
   const aWhimWaveIsThin = typeof aWhimDateWave === "string" && aWhimDateWave.includes("stroke-width='1.35'");
   const navWaveKeepsStandardWeight = typeof navWave === "string" && navWave.includes("stroke-width='2.8'");
-  if (!allNavsValid || !aWhimWaveIsThin || !navWaveKeepsStandardWeight || !realArticleUnderline || realArticleUnderline.color !== "rgb(113, 145, 153)" || realArticleUnderline.style !== "wavy") {
+  if (!allNavsValid || !aWhimWaveIsThin || !navWaveKeepsStandardWeight || !realArticleLink || realArticleLink.color !== "rgb(113, 145, 153)" || realArticleLink.decoration !== "none") {
     throw new Error(JSON.stringify(result));
   }
   console.log(JSON.stringify(result));

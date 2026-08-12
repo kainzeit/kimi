@@ -219,10 +219,7 @@
   .prose-content a,
   .ProseMirror a {
     color: #719199;
-    text-decoration-line: underline;
-    text-decoration-style: wavy;
-    text-decoration-color: #719199;
-    text-underline-offset: 3px;
+    text-decoration: none;
     opacity: 0.9;
   }
   .prose-content a:hover,
