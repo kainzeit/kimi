@@ -18,6 +18,8 @@ describe("Elsewhere article thumbnail extraction", () => {
     const source = await readFile(path.join(process.cwd(), "client/src/pages/Elsewhere.tsx"), "utf8");
     const styles = await readFile(path.join(process.cwd(), "client/src/index.css"), "utf8");
 
+    expect(source).toContain("trpc.images.list.useQuery({ pageKey: \"elsewhere\" })");
+    expect(source).toContain("ManagedPageImage");
     expect(source).toContain("getFirstRichTextImageSrc(article.content)");
     expect(source).toContain('href={`/elsewhere/${article.slug}`}');
     expect(source).toContain(".sort((first, second) => new Date(first.publishedAt).getTime() - new Date(second.publishedAt).getTime())");
@@ -30,6 +32,8 @@ describe("Elsewhere article thumbnail extraction", () => {
     expect(source).toContain("elsewhere-grid-row");
     expect(source).toContain("h-[265px]");
     expect(source).not.toContain("object-cover");
+    expect(source.indexOf("{article.imageSrc &&") < source.indexOf("<time") && source.indexOf("<time") < source.indexOf("getPreview(article.content)")).toBe(true);
+    expect(styles).toContain("justify-content: flex-end;");
     expect(styles).toContain("gap: 3cm;");
     expect(styles).toContain("flex-direction: column;");
   });

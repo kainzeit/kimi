@@ -232,3 +232,7 @@
 
 - [x] Reduce horizontal gap between Elsewhere two-column grid entries to ~3cm (approx. 3rem or 48px)
 - [x] Verify updated spacing on desktop and ensure mobile single-column layout is unaffected
+
+- [x] Align Elsewhere dual-column grid to the left with natural spacing from the sidebar, leaving space on the right for user-uploaded summary images
+- [x] Reorder Elsewhere entry elements so the thumbnail image comes first, followed by the date, and then the preview sentence below the date
+- [x] Verify left-aligned layout, reordered entry content, and mobile responsiveness with regression tests

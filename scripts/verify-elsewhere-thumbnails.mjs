@@ -19,6 +19,8 @@ try {
     const rowElement = document.querySelector(".elsewhere-grid-row");
     const entries = Array.from(document.querySelectorAll(".elsewhere-grid-row:first-child .elsewhere-entry"));
     const images = Array.from(document.querySelectorAll(".elsewhere-thumbnail"));
+    const gridRect = gridElement?.getBoundingClientRect();
+    const imageColumnRect = document.querySelector(".public-image-column")?.getBoundingClientRect();
     const dates = entries.map((entry) => entry.querySelector("time")?.textContent?.trim() || "");
     const centers = entries.map((entry) => {
       const rect = entry.getBoundingClientRect();
@@ -26,6 +28,8 @@ try {
     });
     return {
       gridDirection: gridElement ? getComputedStyle(gridElement).flexDirection : "",
+      gridLeft: gridRect?.left ?? null,
+      imageColumnLeft: imageColumnRect?.left ?? null,
       rowDisplay: rowElement ? getComputedStyle(rowElement).display : "",
       rowFlexDirection: rowElement ? getComputedStyle(rowElement).flexDirection : "",
       rowGap: rowElement ? getComputedStyle(rowElement).columnGap : "",
@@ -37,6 +41,8 @@ try {
   });
 
   if (desktopLayout.gridDirection !== "column-reverse") throw new Error(JSON.stringify(desktopLayout));
+  if (desktopLayout.gridLeft === null || desktopLayout.gridLeft >= 640) throw new Error(`Elsewhere grid is not left aligned: ${JSON.stringify(desktopLayout)}`);
+  if (desktopLayout.imageColumnLeft !== null && desktopLayout.gridLeft >= desktopLayout.imageColumnLeft) throw new Error(`Elsewhere grid overlaps the right image column: ${JSON.stringify(desktopLayout)}`);
   if (desktopLayout.rowDisplay !== "flex" || desktopLayout.rowFlexDirection !== "row") throw new Error(JSON.stringify(desktopLayout));
   if (desktopLayout.rowDirection !== "rtl") throw new Error(JSON.stringify(desktopLayout));
   if (Math.abs(parseFloat(desktopLayout.rowGap) - 113.3858) > 1) throw new Error(`Unexpected desktop gap: ${JSON.stringify(desktopLayout)}`);

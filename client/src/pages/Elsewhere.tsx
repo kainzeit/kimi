@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { ManagedPageImage, type ManagedPageImageData } from "@/components/ManagedPageImage";
 import { getFirstRichTextImageSrc } from "@/lib/richtext-image";
 import { Link } from "wouter";
 
@@ -19,6 +20,7 @@ function formatEntryDate(value: Date | string) {
 
 export default function Elsewhere() {
   const { data: articles, isLoading } = trpc.articles.list.useQuery({ category: "elsewhere" });
+  const { data: images = [] } = trpc.images.list.useQuery({ pageKey: "elsewhere" });
   const sortedArticles = (articles || [])
     .map((article) => ({ ...article, imageSrc: getFirstRichTextImageSrc(article.content) }))
     .sort((first, second) => new Date(first.publishedAt).getTime() - new Date(second.publishedAt).getTime());
@@ -41,12 +43,6 @@ export default function Elsewhere() {
               <div className="elsewhere-grid-row" key={`elsewhere-row-${rowIndex}`}>
                 {row.map((article) => (
                   <article key={article.id} className="elsewhere-entry space-y-3">
-                    <Link href={`/elsewhere/${article.slug}`}>
-                      <time className="inline-block text-[11px] font-normal text-[#719199] leading-tight a-whim-date">
-                        {formatEntryDate(article.publishedAt)}
-                      </time>
-                    </Link>
-
                     {article.imageSrc && (
                       <Link href={`/elsewhere/${article.slug}`} className="block w-fit max-w-full">
                         <img
@@ -56,6 +52,12 @@ export default function Elsewhere() {
                         />
                       </Link>
                     )}
+
+                    <Link href={`/elsewhere/${article.slug}`}>
+                      <time className="inline-block text-[11px] font-normal text-[#719199] leading-tight a-whim-date">
+                        {formatEntryDate(article.publishedAt)}
+                      </time>
+                    </Link>
 
                     {article.content && (
                       <p className="max-w-md text-sm leading-relaxed tracking-wide text-muted-foreground">
@@ -69,6 +71,14 @@ export default function Elsewhere() {
           </div>
         )}
       </div>
+
+      {(images as any[]).length > 0 && (
+        <div className="public-image-column flex flex-col gap-4 shrink-0">
+          {(images as ManagedPageImageData[]).map((image) => (
+            <ManagedPageImage key={image.id} image={image} fallbackHeight={189} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
