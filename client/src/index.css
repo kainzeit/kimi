@@ -457,7 +457,8 @@
   }
 
   /* A Whim detail dates are intentionally quieter than the body copy on mobile. */
-  .public-post-layout .a-whim-post h1.a-whim-date-heading {
+  .public-post-layout .a-whim-post h1.a-whim-date-heading,
+  .public-post-layout .elsewhere-post h1.a-whim-date-heading {
     font-size: 0.75rem;
     line-height: 1.35;
     font-weight: 400;

@@ -242,3 +242,6 @@
 
 - [x] Reverse Elsewhere mobile entry order so the newest photo appears at the top and the earliest at the bottom, while keeping desktop Z-shaped layout intact
 - [x] Verify mobile Elsewhere chronological order and run regression tests
+
+- [x] Unify Elsewhere article detail page mobile date font size with A Whim (12px, normal weight)
+- [x] Verify Elsewhere mobile detail page typography and run regression tests

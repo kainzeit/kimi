@@ -41,10 +41,19 @@ try {
     return {
       fontSize: style.fontSize,
       fontWeight: style.fontWeight,
+      color: style.color,
       bodyFontSize: body ? getComputedStyle(body).fontSize : "",
     };
   });
   await mobile.screenshot({ path: "/home/ubuntu/screenshots/a-whim-detail-mobile.png", fullPage: true });
+
+  await mobile.goto("http://localhost:3000/elsewhere", { waitUntil: "networkidle" });
+  await mobile.locator(".elsewhere-thumbnail").first().click();
+  const mobileElsewhereDetailTypography = await mobile.locator("article h1").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { fontSize: style.fontSize, fontWeight: style.fontWeight, color: style.color };
+  });
+  await mobile.screenshot({ path: "/home/ubuntu/screenshots/elsewhere-detail-mobile.png", fullPage: true });
   await mobile.close();
 
   await page.goto("http://localhost:3000/imagination", { waitUntil: "networkidle" });
@@ -87,6 +96,9 @@ try {
     mobileWhimDetailTypography.fontSize !== "12px" ||
     mobileWhimDetailTypography.fontWeight !== "400" ||
     mobileWhimDetailTypography.bodyFontSize !== "16px" ||
+    mobileElsewhereDetailTypography.fontSize !== mobileWhimDetailTypography.fontSize ||
+    mobileElsewhereDetailTypography.fontWeight !== mobileWhimDetailTypography.fontWeight ||
+    mobileElsewhereDetailTypography.color !== mobileWhimDetailTypography.color ||
     whimDetailTypography.color !== "rgb(113, 145, 153)" ||
     imaginationListTypography.fontWeight === "400" ||
     imaginationDetailTypography.fontWeight === "400" ||
@@ -95,10 +107,10 @@ try {
     whimListGap > 6 ||
     whimDetailGap > 14
   ) {
-    throw new Error(JSON.stringify({ whimListTypography, whimDetailTypography, mobileWhimDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
+    throw new Error(JSON.stringify({ whimListTypography, whimDetailTypography, mobileWhimDetailTypography, mobileElsewhereDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
   }
 
-  console.log(JSON.stringify({ whimListTypography, whimDetailTypography, mobileWhimDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
+  console.log(JSON.stringify({ whimListTypography, whimDetailTypography, mobileWhimDetailTypography, mobileElsewhereDetailTypography, whimListGap, whimDetailGap, imaginationListTypography, imaginationDetailTypography, elsewhereListTypography, elsewhereDetailTypography }));
 } finally {
   await browser.close();
 }

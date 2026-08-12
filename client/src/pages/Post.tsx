@@ -60,7 +60,7 @@ export default function Post() {
         <p className="text-sm text-muted-foreground">article not found.</p>
       ) : (
         <>
-          <article className={`max-w-xl article-reading-density article-density-comfortable ${isAWhim ? "a-whim-post" : ""}`}>
+          <article className={`max-w-xl article-reading-density article-density-comfortable ${isAWhim ? "a-whim-post" : isElsewhere ? "elsewhere-post" : ""}`}>
             {!isTitlelessEntry && (
               <p className="text-xs text-muted-foreground mb-4 tracking-wide">
                 {new Date(article.publishedAt).toLocaleDateString("en-US", {
