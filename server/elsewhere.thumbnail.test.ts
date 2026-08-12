@@ -14,13 +14,16 @@ describe("Elsewhere article thumbnail extraction", () => {
     expect(getFirstRichTextImageSrc("<p>an image-free note</p>")).toBeNull();
   });
 
-  it("renders Elsewhere entries as silent, clickable first-image thumbnails", async () => {
+  it("renders Elsewhere entries as reverse-chronological date, proportional first-image, and first-sentence rows", async () => {
     const source = await readFile(path.join(process.cwd(), "client/src/pages/Elsewhere.tsx"), "utf8");
 
     expect(source).toContain("getFirstRichTextImageSrc(article.content)");
     expect(source).toContain('href={`/elsewhere/${article.slug}`}');
-    expect(source).toContain('className="h-32 w-48');
-    expect(source).not.toContain("getPreview(");
-    expect(source).not.toContain("new Date(article.publishedAt)");
+    expect(source).toContain(".sort((first, second)");
+    expect(source).toContain('text-[11px]');
+    expect(source).toContain("text-[#719199]");
+    expect(source).toContain("getPreview(article.content)");
+    expect(source).toContain("object-contain");
+    expect(source).not.toContain("object-cover");
   });
 });

@@ -10,8 +10,8 @@ try {
   const thumbnail = page.locator('a[href^="/elsewhere/"] img').first();
   await thumbnail.waitFor();
   const thumbnailSize = await thumbnail.evaluate((image) => ({ width: image.clientWidth, height: image.clientHeight }));
-  const isCompactThumbnail = thumbnailSize.width >= 190 && thumbnailSize.width <= 210
-    && thumbnailSize.height >= 120 && thumbnailSize.height <= 150;
+  const isCompactThumbnail = thumbnailSize.width > 0 && thumbnailSize.width <= 208
+    && thumbnailSize.height > 0 && thumbnailSize.height <= 160;
   if (!isCompactThumbnail) throw new Error(JSON.stringify(thumbnailSize));
 
   await thumbnail.click();

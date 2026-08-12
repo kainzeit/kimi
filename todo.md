@@ -209,3 +209,7 @@
 - [x] Extract the first image from each Elsewhere article HTML for a silent right-column thumbnail entry
 - [x] Replace Elsewhere list titles, dates, and text previews with smaller right-column article thumbnails
 - [x] Preserve article detail while verifying thumbnail navigation and mobile layout
+
+- [x] Replace Elsewhere silent thumbnails with reverse-chronological date, first image, and first-sentence entries
+- [x] Reuse 11px gray date styling and remove thumbnail cropping through proportional scaling
+- [x] Verify date ordering, detail navigation, and responsive blog-like Elsewhere layout
