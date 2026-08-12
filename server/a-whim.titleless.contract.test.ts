@@ -31,9 +31,9 @@ describe("A Whim titleless date-heading contract", () => {
     const postSource = await readFile(path.join(projectRoot, "client/src/pages/Post.tsx"), "utf8");
     const manageSource = await readFile(path.join(projectRoot, "client/src/pages/Manage.tsx"), "utf8");
 
-    expect(listSource).toContain('className="text-sm font-normal nav-link inline-block mb-1"');
-    expect(postSource).toContain('isAWhim ? "text-base font-normal" : "text-2xl font-bold"');
-    expect(manageSource).toContain('isAWhim ? "text-base font-normal" : "text-2xl font-bold"');
+    expect(listSource).toContain('className="text-xs font-normal nav-link inline-block mb-1"');
+    expect(postSource).toContain('isAWhim ? "text-sm font-normal" : "text-2xl font-bold"');
+    expect(manageSource).toContain('isAWhim ? "text-sm font-normal" : "text-2xl font-bold"');
   });
 
   it("keeps title-led workflows for Imagination and Elsewhere", async () => {

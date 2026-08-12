@@ -31,9 +31,9 @@ try {
   });
 
   if (
-    whimListTypography.fontSize !== "14px" ||
+    whimListTypography.fontSize !== "12px" ||
     whimListTypography.fontWeight !== "400" ||
-    whimDetailTypography.fontSize !== "16px" ||
+    whimDetailTypography.fontSize !== "14px" ||
     whimDetailTypography.fontWeight !== "400" ||
     imaginationListTypography.fontWeight === "400" ||
     imaginationDetailTypography.fontWeight === "400"

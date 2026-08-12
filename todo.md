@@ -159,3 +159,5 @@
 - [x] Update the database article category enum so Elsewhere entries can be created and published
 - [x] Make A Whim date headings match the body-text size and remove bold weight on list and detail views
 - [x] Verify A Whim date styling while preserving Imagination and Elsewhere title typography
+- [x] Reduce A Whim date typography by one additional size step on public list, detail, and preview views
+- [x] Verify the smaller A Whim date remains lighter than body text while other article titles retain their hierarchy
