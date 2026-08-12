@@ -26,7 +26,9 @@ try {
     });
     return {
       gridDirection: gridElement ? getComputedStyle(gridElement).flexDirection : "",
-      rowColumns: rowElement ? getComputedStyle(rowElement).gridTemplateColumns : "",
+      rowDisplay: rowElement ? getComputedStyle(rowElement).display : "",
+      rowFlexDirection: rowElement ? getComputedStyle(rowElement).flexDirection : "",
+      rowGap: rowElement ? getComputedStyle(rowElement).columnGap : "",
       rowDirection: rowElement ? getComputedStyle(rowElement).direction : "",
       dates,
       centers,
@@ -35,7 +37,9 @@ try {
   });
 
   if (desktopLayout.gridDirection !== "column-reverse") throw new Error(JSON.stringify(desktopLayout));
+  if (desktopLayout.rowDisplay !== "flex" || desktopLayout.rowFlexDirection !== "row") throw new Error(JSON.stringify(desktopLayout));
   if (desktopLayout.rowDirection !== "rtl") throw new Error(JSON.stringify(desktopLayout));
+  if (Math.abs(parseFloat(desktopLayout.rowGap) - 113.3858) > 1) throw new Error(`Unexpected desktop gap: ${JSON.stringify(desktopLayout)}`);
   if (desktopLayout.centers.length >= 2 && desktopLayout.centers[0] <= desktopLayout.centers[1]) {
     throw new Error(`Earliest entry is not on the right: ${JSON.stringify(desktopLayout)}`);
   }
@@ -61,11 +65,12 @@ try {
       viewport: window.innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
       gridDirection: grid ? getComputedStyle(grid).flexDirection : "",
-      rowColumns: row ? getComputedStyle(row).gridTemplateColumns : "",
+      rowDisplay: row ? getComputedStyle(row).display : "",
+      rowFlexDirection: row ? getComputedStyle(row).flexDirection : "",
       rowDirection: row ? getComputedStyle(row).direction : "",
     };
   });
-  if (mobileLayout.scrollWidth > mobileLayout.viewport || mobileLayout.gridDirection !== "column") {
+  if (mobileLayout.scrollWidth > mobileLayout.viewport || mobileLayout.gridDirection !== "column" || mobileLayout.rowDisplay !== "flex" || mobileLayout.rowFlexDirection !== "column") {
     throw new Error(JSON.stringify(mobileLayout));
   }
   await mobile.screenshot({ path: "/home/ubuntu/screenshots/elsewhere-grid-mobile.png", fullPage: true });

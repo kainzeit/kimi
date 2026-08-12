@@ -16,6 +16,7 @@ describe("Elsewhere article thumbnail extraction", () => {
 
   it("renders Elsewhere entries as reverse-chronological date, proportional first-image, and first-sentence rows", async () => {
     const source = await readFile(path.join(process.cwd(), "client/src/pages/Elsewhere.tsx"), "utf8");
+    const styles = await readFile(path.join(process.cwd(), "client/src/index.css"), "utf8");
 
     expect(source).toContain("getFirstRichTextImageSrc(article.content)");
     expect(source).toContain('href={`/elsewhere/${article.slug}`}');
@@ -29,5 +30,7 @@ describe("Elsewhere article thumbnail extraction", () => {
     expect(source).toContain("elsewhere-grid-row");
     expect(source).toContain("h-[265px]");
     expect(source).not.toContain("object-cover");
+    expect(styles).toContain("gap: 3cm;");
+    expect(styles).toContain("flex-direction: column;");
   });
 });

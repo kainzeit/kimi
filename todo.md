@@ -229,3 +229,6 @@
 - [x] Adjust Elsewhere thumbnail height to 7cm (~265px)
 - [x] Implement Z-shaped grid flow starting from the earliest entry at the bottom-right, moving left, then up to the next row (bottom-to-top, right-to-left zigzag)
 - [x] Verify desktop and mobile layouts and run regression tests for the updated Elsewhere grid
+
+- [x] Reduce horizontal gap between Elsewhere two-column grid entries to ~3cm (approx. 3rem or 48px)
+- [x] Verify updated spacing on desktop and ensure mobile single-column layout is unaffected
