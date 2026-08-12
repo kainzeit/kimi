@@ -49,12 +49,12 @@ export default function AWhim() {
             {articles.map((article) => (
               <div key={article.id}>
                 <Link href={`/a-whim/${article.slug}`}>
-                  <h2 className="text-xs font-normal nav-link inline-block mb-1">
+                  <h2 className="text-[10px] font-normal text-muted-foreground nav-link inline-block mb-0 leading-tight a-whim-date">
                     {formatWhimDate(article.publishedAt)}
                   </h2>
                 </Link>
                 {article.content && (
-                  <p className="text-sm text-muted-foreground tracking-wide mt-2 leading-relaxed max-w-lg">
+                  <p className="text-sm text-muted-foreground tracking-wide mt-1 leading-relaxed max-w-lg a-whim-preview">
                     {getPreview(article.content)}
                   </p>
                 )}

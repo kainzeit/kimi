@@ -469,6 +469,11 @@
   min-width: 0;
 }
 
+/* A Whim uses a quiet date marker rather than a headline. */
+.a-whim-title-row {
+  margin-bottom: 0.75rem;
+}
+
 .reading-density-toggle {
   display: inline-flex;
   flex: 0 0 auto;

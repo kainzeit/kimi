@@ -30,10 +30,14 @@ describe("A Whim titleless date-heading contract", () => {
     const listSource = await readFile(path.join(projectRoot, "client/src/pages/AWhim.tsx"), "utf8");
     const postSource = await readFile(path.join(projectRoot, "client/src/pages/Post.tsx"), "utf8");
     const manageSource = await readFile(path.join(projectRoot, "client/src/pages/Manage.tsx"), "utf8");
+    const cssSource = await readFile(path.join(projectRoot, "client/src/index.css"), "utf8");
 
-    expect(listSource).toContain('className="text-xs font-normal nav-link inline-block mb-1"');
-    expect(postSource).toContain('isAWhim ? "text-sm font-normal" : "text-2xl font-bold"');
-    expect(manageSource).toContain('isAWhim ? "text-sm font-normal" : "text-2xl font-bold"');
+    expect(listSource).toContain('className="text-[10px] font-normal text-muted-foreground nav-link inline-block mb-0 leading-tight a-whim-date"');
+    expect(listSource).toContain('className="text-sm text-muted-foreground tracking-wide mt-1 leading-relaxed max-w-lg a-whim-preview"');
+    expect(postSource).toContain('isAWhim ? "text-[10px] font-normal text-muted-foreground leading-tight a-whim-date-heading" : "text-2xl font-bold"');
+    expect(postSource).toContain('isAWhim ? "a-whim-title-row" : ""');
+    expect(cssSource).toContain(".a-whim-title-row {\n  margin-bottom: 0.75rem;\n}");
+    expect(manageSource).toContain('isAWhim ? "text-[10px] font-normal text-muted-foreground leading-tight a-whim-date-heading" : "text-2xl font-bold"');
   });
 
   it("keeps title-led workflows for Imagination and Elsewhere", async () => {
