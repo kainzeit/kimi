@@ -1,4 +1,4 @@
-import { and, eq, desc, sql, isNull, isNotNull, inArray } from "drizzle-orm";
+import { and, eq, desc, sql, isNull, isNotNull, inArray, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, articles, articleAutosaves, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -465,6 +465,62 @@ export async function permanentlyDeleteArticle(id: number) {
       .where(and(eq(articles.id, id), isNotNull(articles.deletedAt)));
   } catch (error) {
     console.error("[Database] Failed to permanently delete article:", error);
+    throw error;
+  }
+}
+
+export const RECYCLE_RETENTION_DAYS = 15;
+
+function normalizeArticleIds(ids: number[]) {
+  return Array.from(new Set(ids)).filter((id) => Number.isInteger(id) && id > 0);
+}
+
+export function getRecycleRetentionCutoff(now = new Date()) {
+  return new Date(now.getTime() - RECYCLE_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+}
+
+// Permanently remove selected articles only when they are already in the recycle bin.
+export async function permanentlyDeleteArticles(ids: number[]) {
+  const normalizedIds = normalizeArticleIds(ids);
+  if (normalizedIds.length === 0) return { affected: 0 };
+
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  try {
+    const recyclableRows = await db
+      .select({ id: articles.id })
+      .from(articles)
+      .where(and(inArray(articles.id, normalizedIds), isNotNull(articles.deletedAt)));
+    const recyclableIds = recyclableRows.map((article) => article.id);
+    if (recyclableIds.length === 0) return { affected: 0 };
+
+    await db.delete(articleAutosaves).where(inArray(articleAutosaves.articleId, recyclableIds));
+    const result = await db
+      .delete(articles)
+      .where(and(inArray(articles.id, recyclableIds), isNotNull(articles.deletedAt)));
+    return { affected: (result as { rowsAffected?: number }).rowsAffected ?? recyclableIds.length };
+  } catch (error) {
+    console.error("[Database] Failed to permanently delete selected articles:", error);
+    throw error;
+  }
+}
+
+// Idempotent recycle-bin retention cleanup. Only entries deleted at least 15 days ago are eligible.
+export async function purgeExpiredDeletedArticles(now = new Date()) {
+  const cutoff = getRecycleRetentionCutoff(now);
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  try {
+    const expiredRows = await db
+      .select({ id: articles.id })
+      .from(articles)
+      .where(and(isNotNull(articles.deletedAt), lte(articles.deletedAt, cutoff)));
+    const result = await permanentlyDeleteArticles(expiredRows.map((article) => article.id));
+    return { cutoff, affected: result.affected };
+  } catch (error) {
+    console.error("[Database] Failed to purge expired recycle-bin articles:", error);
     throw error;
   }
 }

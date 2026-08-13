@@ -245,3 +245,8 @@
 
 - [x] Unify Elsewhere article detail page mobile date font size with A Whim (12px, normal weight)
 - [x] Verify Elsewhere mobile detail page typography and run regression tests
+
+- [x] Add select-all and batch permanently delete controls to the Article Recycle Bin
+- [ ] Activate the daily automatic cleanup that permanently deletes articles retained in the Recycle Bin for 15 days or more after the next publish
+- [x] Add protected backend procedures and idempotent scheduled cleanup handling for recycle retention
+- [x] Verify manual batch permanent deletion, 15-day cleanup eligibility, and regression coverage

@@ -5,7 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   listArticles, getArticleBySlug, createArticle, updateArticle, deleteArticle,
-  hideArticle, unhideArticle, softDeleteArticle, restoreArticle, permanentlyDeleteArticle, listDeletedArticles, setArticleDraft,
+  hideArticle, unhideArticle, softDeleteArticle, restoreArticle, permanentlyDeleteArticle, permanentlyDeleteArticles, listDeletedArticles, setArticleDraft,
   batchUpdateArticles, getArticleForManage, getArticleBySlugForManage, saveArticleAutosave, getArticleAutosave, clearArticleAutosave,
   getPageContent, updatePageContent,
   listImages, deleteImage,
@@ -118,6 +118,10 @@ export const appRouter = router({
     permanentlyDelete: publicProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => permanentlyDeleteArticle(input.id)),
+
+    batchPermanentlyDelete: publicProcedure
+      .input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(100) }))
+      .mutation(async ({ input }) => permanentlyDeleteArticles(input.ids)),
 
     setDraft: publicProcedure
       .input(z.object({ id: z.number(), isDraft: z.boolean() }))

@@ -835,6 +835,7 @@ export default function Manage() {
   const [isPreviewingArticle, setIsPreviewingArticle] = useState(false);
   const [previewArticle, setPreviewArticle] = useState<any | null>(null);
   const [selectedArticleIds, setSelectedArticleIds] = useState<number[]>([]);
+  const [selectedRecycleArticleIds, setSelectedRecycleArticleIds] = useState<number[]>([]);
   const [isExportingMarkdown, setIsExportingMarkdown] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "", publishedAt: today });
@@ -872,6 +873,7 @@ export default function Manage() {
   const softDeleteArticleMutation = trpc.articles.softDelete.useMutation();
   const restoreArticleMutation = trpc.articles.restore.useMutation();
   const permanentlyDeleteArticleMutation = trpc.articles.permanentlyDelete.useMutation();
+  const batchPermanentlyDeleteArticlesMutation = trpc.articles.batchPermanentlyDelete.useMutation();
   const setArticleDraftMutation = trpc.articles.setDraft.useMutation();
   const batchUpdateArticlesMutation = trpc.articles.batchUpdate.useMutation();
   const { refetch: refetchMarkdownExport } = trpc.articles.exportMarkdown.useQuery(
@@ -1090,6 +1092,20 @@ export default function Manage() {
     }
   };
 
+  const handleBulkPermanentlyDeleteArticles = async () => {
+    const ids = selectedRecycleArticleIds.filter((id) => (deletedArticles as any[]).some((article: any) => article.id === id));
+    if (ids.length === 0) return;
+    if (!window.confirm(`Permanently delete ${ids.length} selected ${ids.length === 1 ? "entry" : "entries"}? This cannot be undone.`)) return;
+    try {
+      await batchPermanentlyDeleteArticlesMutation.mutateAsync({ ids });
+      setSelectedRecycleArticleIds([]);
+      await refetchDeletedArticles();
+      await refetchArticles();
+    } catch (err) {
+      console.error("Bulk permanent delete failed:", err);
+    }
+  };
+
   const handleDeleteArticle = async (id: number) => {
     if (!window.confirm("move this article to recycle?")) return;
     try {
@@ -1218,6 +1234,8 @@ export default function Manage() {
   const visibleArticles = (articles as any[]).filter((article: any) => !article.deletedAt);
   const selectedVisibleArticleIds = selectedArticleIds.filter((id) => visibleArticles.some((article: any) => article.id === id));
   const allVisibleArticlesSelected = visibleArticles.length > 0 && selectedVisibleArticleIds.length === visibleArticles.length;
+  const selectedDeletedArticleIds = selectedRecycleArticleIds.filter((id) => (deletedArticles as any[]).some((article: any) => article.id === id));
+  const allDeletedArticlesSelected = (deletedArticles as any[]).length > 0 && selectedDeletedArticleIds.length === (deletedArticles as any[]).length;
   const visibleImages = (images as any[]).filter((image: any) => !image.deletedAt);
   const sizingImage = visibleImages.find((image: any) => image.id === sizingImageId);
 
@@ -1326,20 +1344,52 @@ export default function Manage() {
                 <div className="mb-6">
                   <h2 className="text-sm font-semibold tracking-wide">article recycle bin</h2>
                   <p className="mt-1 text-xs tracking-wide text-muted-foreground">
-                    deleted entries from a whim, imagination, and elsewhere stay here until restored.
+                    deleted entries from a whim, imagination, and elsewhere stay here for 15 days before automatic permanent removal, unless restored.
                   </p>
                 </div>
                 {(deletedArticles as any[]).length === 0 ? (
                   <p className="text-sm tracking-wide text-muted-foreground">recycle is empty.</p>
                 ) : (
                   <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-3 pb-2">
+                      <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          checked={allDeletedArticlesSelected}
+                          onChange={(event) => setSelectedRecycleArticleIds(event.target.checked ? (deletedArticles as any[]).map((article: any) => article.id) : [])}
+                        />
+                        select all
+                      </label>
+                      {selectedDeletedArticleIds.length > 0 && (
+                        <>
+                          <span className="text-xs text-muted-foreground">{selectedDeletedArticleIds.length} selected</span>
+                          <button
+                            type="button"
+                            onClick={() => void handleBulkPermanentlyDeleteArticles()}
+                            disabled={batchPermanentlyDeleteArticlesMutation.isPending}
+                            className="text-xs text-destructive transition hover:opacity-70 disabled:opacity-50"
+                          >
+                            permanently delete selected
+                          </button>
+                        </>
+                      )}
+                    </div>
                     {(deletedArticles as any[]).map((article: any) => (
                       <div key={article.id} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-                        <div className="min-w-0 pr-4">
-                          <p className="truncate text-sm font-semibold">{article.title}</p>
-                          <p className="mt-0.5 text-xs tracking-wide text-muted-foreground">
-                            {article.category} · /{article.slug} · deleted {article.deletedAt ? new Date(article.deletedAt).toLocaleDateString("en-US") : "—"}
-                          </p>
+                        <div className="flex min-w-0 items-start gap-3 pr-4">
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={selectedRecycleArticleIds.includes(article.id)}
+                            onChange={(event) => setSelectedRecycleArticleIds((ids) => event.target.checked ? [...ids, article.id] : ids.filter((id) => id !== article.id))}
+                            aria-label={`Select ${article.title} from recycle`}
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold">{article.title}</p>
+                            <p className="mt-0.5 text-xs tracking-wide text-muted-foreground">
+                              {article.category} · /{article.slug} · deleted {article.deletedAt ? new Date(article.deletedAt).toLocaleDateString("en-US") : "—"}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => handleRestoreArticle(article.id)}>

@@ -35,6 +35,22 @@ try {
     await page.getByText("close preview", { exact: false }).click();
   }
 
+  await page.getByRole("button", { name: "recycle", exact: true }).last().click();
+  await page.getByRole("heading", { name: "article recycle bin", exact: true }).waitFor();
+  summary.recycleVisible = await page.getByText("article recycle bin", { exact: true }).count();
+  summary.recycleRetentionMessageVisible = await page.getByText(/stay here for 15 days before automatic permanent removal/).count();
+  summary.recycleEntrySelectBoxes = await page.locator('input[aria-label$="from recycle"]').count();
+
+  if (summary.recycleEntrySelectBoxes > 0) {
+    await page.getByLabel("select all", { exact: true }).check();
+    summary.recycleBatchPermanentDeleteVisible = await page.getByText("permanently delete selected", { exact: true }).count();
+    await page.getByLabel("select all", { exact: true }).uncheck();
+  }
+
+  if (!summary.recycleVisible || !summary.recycleRetentionMessageVisible || (summary.recycleEntrySelectBoxes > 0 && !summary.recycleBatchPermanentDeleteVisible)) {
+    throw new Error(JSON.stringify(summary));
+  }
+
   console.log(JSON.stringify(summary));
 } finally {
   await browser.close();

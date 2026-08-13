@@ -52,4 +52,31 @@ describe("Article recycle permanent deletion", () => {
     expect(deletedAfterPermanentDelete.some((article: any) => article.id === created!.id)).toBe(false);
     expect(allAfterPermanentDelete.some((article: any) => article.id === created!.id)).toBe(false);
   });
+
+  it("permanently deletes multiple selected recycle-bin articles in one action", async () => {
+    const caller = appRouter.createCaller(createContext());
+    const suffix = Date.now();
+    const slugs = [`batch-permanent-delete-${suffix}-one`, `batch-permanent-delete-${suffix}-two`];
+
+    for (const slug of slugs) {
+      await caller.articles.create({
+        slug,
+        title: `Recycle fixture ${slug}`,
+        content: "This record is created and removed by the batch recycle test.",
+        category: "a-whim",
+        isDraft: true,
+      });
+    }
+
+    const created = (await caller.articles.list({ category: "a-whim", includeHidden: true }))
+      .filter((article: any) => slugs.includes(article.slug));
+    expect(created).toHaveLength(2);
+
+    await Promise.all(created.map((article: any) => caller.articles.softDelete({ id: article.id })));
+    const result = await caller.articles.batchPermanentlyDelete({ ids: created.map((article: any) => article.id) });
+    expect(result.affected).toBe(2);
+
+    const deletedAfterBatchDelete = await caller.articles.listDeleted({});
+    expect(created.every((article: any) => !deletedAfterBatchDelete.some((deleted: any) => deleted.id === article.id))).toBe(true);
+  });
 });
