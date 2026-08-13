@@ -250,3 +250,7 @@
 - [x] Activate the daily automatic cleanup that permanently deletes articles retained in the Recycle Bin for 15 days or more after the next publish
 - [x] Add protected backend procedures and idempotent scheduled cleanup handling for recycle retention
 - [x] Verify manual batch permanent deletion, 15-day cleanup eligibility, and regression coverage
+
+- [x] Inventory kimi project code, data, media, configuration, domain, and scheduled-job dependencies for external migration
+- [x] Verify Vercel and Netlify migration considerations from official documentation
+- [x] Create a non-destructive migration backup checklist covering exports and replacement modules
