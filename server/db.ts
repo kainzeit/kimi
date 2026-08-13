@@ -1,6 +1,19 @@
 import { and, eq, desc, sql, isNull, isNotNull, inArray, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, articles, articleAutosaves, InsertArticle, pageContent, images, InsertImage } from "../drizzle/schema";
+import {
+  InsertUser,
+  users,
+  articles,
+  articleAutosaves,
+  InsertArticle,
+  pageContent,
+  images,
+  InsertImage,
+  accessLogs,
+  articleViews,
+  siteConfig,
+  InsertAccessLog,
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -16,6 +29,46 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+/**
+ * Returns a complete database snapshot for an owner-initiated backup archive.
+ * Secrets remain outside the database snapshot and are never read here.
+ */
+export async function getCompleteBackupDataset() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available for backup");
+
+  const [
+    userRows,
+    articleRows,
+    autosaveRows,
+    pageRows,
+    imageRows,
+    accessLogRows,
+    articleViewRows,
+    siteConfigRows,
+  ] = await Promise.all([
+    db.select().from(users),
+    db.select().from(articles),
+    db.select().from(articleAutosaves),
+    db.select().from(pageContent),
+    db.select().from(images),
+    db.select().from(accessLogs),
+    db.select().from(articleViews),
+    db.select().from(siteConfig),
+  ]);
+
+  return {
+    users: userRows,
+    articles: articleRows,
+    articleAutosaves: autosaveRows,
+    pageContent: pageRows,
+    images: imageRows,
+    accessLogs: accessLogRows,
+    articleViews: articleViewRows,
+    siteConfig: siteConfigRows,
+  };
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -318,7 +371,6 @@ export async function deleteImage(id: number) {
 }
 
 // ---- Access Logs ----
-import { accessLogs, articleViews, siteConfig, InsertAccessLog } from "../drizzle/schema";
 
 export async function createAccessLog(data: InsertAccessLog) {
   const db = await getDb();

@@ -15,9 +15,10 @@ try {
     exportVisible: await page.getByText("export markdown", { exact: true }).count(),
     selectAllVisible: await selectionToggle.count(),
     previewButtons: await page.locator('button[title="Preview"]').count(),
+    completeBackupControlVisible: await page.getByRole("button", { name: "download backup", exact: true }).count(),
   };
 
-  if (!summary.exportVisible || !summary.selectAllVisible) {
+  if (!summary.exportVisible || !summary.selectAllVisible || !summary.completeBackupControlVisible) {
     throw new Error(JSON.stringify(summary));
   }
 

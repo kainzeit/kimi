@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerUploadRoute } from "../uploadRoute";
 import { handleRecycleArticleCleanup } from "../recycleCleanup";
+import { registerBackupRoute } from "../backupRoute";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,6 +40,7 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerUploadRoute(app);
+  registerBackupRoute(app);
   app.post("/api/scheduled/recycle-cleanup", handleRecycleArticleCleanup);
   // tRPC API
   app.use(

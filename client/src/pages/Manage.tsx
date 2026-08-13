@@ -1,8 +1,9 @@
 import { trpc } from "@/lib/trpc";
+import { COOKIE_NAME } from "@shared/const";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw, Maximize2, Link as LinkIcon } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ArrowLeft, Bold, Italic, Underline as UnderlineIcon, List, Heading2, Edit2, Palette, Check, AlertCircle, Eye, EyeOff, RotateCcw, Maximize2, Link as LinkIcon, Download } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -837,6 +838,7 @@ export default function Manage() {
   const [selectedArticleIds, setSelectedArticleIds] = useState<number[]>([]);
   const [selectedRecycleArticleIds, setSelectedRecycleArticleIds] = useState<number[]>([]);
   const [isExportingMarkdown, setIsExportingMarkdown] = useState(false);
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const [articleForm, setArticleForm] = useState({ slug: "", title: "", content: "", publishedAt: today });
   const [articleRichContent, setArticleRichContent] = useState("");
@@ -1152,6 +1154,38 @@ export default function Manage() {
     }
   };
 
+  const handleCompleteBackupDownload = async () => {
+    setIsCreatingBackup(true);
+    try {
+      const headers: Record<string, string> = {};
+      const rawSession = sessionStorage.getItem("manus-cookie");
+      const cookiePrefix = `${COOKIE_NAME}=`;
+      const cookiePair = rawSession?.split(";").find((value) => value.trim().startsWith(cookiePrefix));
+      const token = cookiePair?.trim().slice(cookiePrefix.length);
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch("/api/admin/backup", { credentials: "include", headers });
+      if (!response.ok) throw new Error(`Backup download failed (${response.status})`);
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("content-disposition") || "";
+      const filename = contentDisposition.match(/filename="?([^";]+)"?/i)?.[1] || "kimi-complete-backup.zip";
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error("Complete backup download failed:", err);
+      window.alert("Backup could not be created. Please confirm you are signed in as the site owner and try again.");
+    } finally {
+      setIsCreatingBackup(false);
+    }
+  };
+
   const handleSavePage = async () => {
     setSavingPage(true);
     try {
@@ -1273,7 +1307,19 @@ export default function Manage() {
           </a>
           <h1 className="text-xl font-bold">manage</h1>
         </div>
-        <div className="flex gap-6">
+        <div className="flex items-center gap-6">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            onClick={() => void handleCompleteBackupDownload()}
+            disabled={isCreatingBackup}
+            title="Download code, database data, images, manifests, and a secret-free environment template"
+          >
+            {isCreatingBackup ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Download className="mr-1 h-3 w-3" />}
+            {isCreatingBackup ? "building backup" : "download backup"}
+          </Button>
           {navBtn("pages", "pages")}
           {navBtn("articles", "articles")}
           {navBtn("images", "images")}

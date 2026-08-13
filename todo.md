@@ -254,3 +254,7 @@
 - [x] Inventory kimi project code, data, media, configuration, domain, and scheduled-job dependencies for external migration
 - [x] Verify Vercel and Netlify migration considerations from official documentation
 - [x] Create a non-destructive migration backup checklist covering exports and replacement modules
+
+- [x] Generate and validate a downloadable offline backup package containing code, database data, media, manifests, and an environment-variable template without secret values
+- [x] Add an admin-protected one-click backup download action to Manage
+- [x] Verify backup archive contents, image coverage, authorization behavior, and existing application regressions
